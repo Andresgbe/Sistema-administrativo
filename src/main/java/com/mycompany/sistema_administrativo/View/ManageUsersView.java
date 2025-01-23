@@ -6,6 +6,7 @@ package com.mycompany.sistema_administrativo.View;
 
 import javax.swing.*;
 import java.awt.*;
+import javax.swing.table.DefaultTableModel;
 
 /**
  *
@@ -57,4 +58,11 @@ public class ManageUsersView extends JFrame {
     public JButton getDeleteButton(){
         return deleteButton;
     }  
+    
+    // Método para cargar usuarios en la tabla
+public void loadUsers(Object[][] usersData) {
+    String[] columnNames = {"ID", "Correo", "Rol", "Teléfono", "Nombre"};
+    DefaultTableModel model = new DefaultTableModel(usersData, columnNames);
+    usersTable.setModel(model);
+}
 }
