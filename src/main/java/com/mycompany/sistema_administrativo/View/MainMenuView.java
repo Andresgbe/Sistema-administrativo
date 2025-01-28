@@ -5,6 +5,8 @@
 package com.mycompany.sistema_administrativo.View;
 
 import com.mycompany.sistema_administrativo.View.ProductsView;
+import com.mycompany.sistema_administrativo.Controller.ManageUsersController;
+
 
 import javax.swing.*;
 import java.awt.*;
@@ -46,6 +48,13 @@ public class MainMenuView extends JFrame {
             new ManageUsersView().setVisible(true);
         });
 
+        manageUsersButton.addActionListener(e -> {
+             System.out.println("🔹 Botón Gestionar Usuarios presionado.");
+          ManageUsersView manageUsersView = new ManageUsersView();
+          new ManageUsersController(manageUsersView); // Instanciar el controlador
+          manageUsersView.setVisible(true);
+        });
+        
         // Acción para abrir la gestión de productos
         manageProductsButton.addActionListener(e -> {
             new ProductsView().setVisible(true);

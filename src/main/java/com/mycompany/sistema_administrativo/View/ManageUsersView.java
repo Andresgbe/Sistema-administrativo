@@ -7,6 +7,7 @@ package com.mycompany.sistema_administrativo.View;
 import javax.swing.*;
 import java.awt.*;
 import javax.swing.table.DefaultTableModel;
+import java.util.Arrays;
 
 /**
  *
@@ -14,25 +15,31 @@ import javax.swing.table.DefaultTableModel;
  */
 public class ManageUsersView extends JFrame {
     private JTable usersTable;
+    private DefaultTableModel tableModel;
     private JButton addButton;
     private JButton editButton;
     private JButton deleteButton;
-
+    
     public ManageUsersView() {
         setTitle("Gestión de Usuarios");
         setSize(600, 400);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Crear componentes
-        usersTable = new JTable(); // La tabla para mostrar usuarios
+        // Crear modelo de la tabla con las columnas
+        String[] columnNames = {"ID", "Nombre", "Correo", "Teléfono", "Rol"};
+        tableModel = new DefaultTableModel(columnNames, 0);
+        usersTable = new JTable(tableModel);
+        JScrollPane scrollPane = new JScrollPane(usersTable);
+
+        // Crear botones
         addButton = new JButton("Agregar Usuario");
         editButton = new JButton("Editar Usuario");
         deleteButton = new JButton("Eliminar Usuario");
 
-        // Diseño de la ventana
+        // Diseño de la interfaz
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(new JScrollPane(usersTable), BorderLayout.CENTER); // Tabla en el centro
+        panel.add(scrollPane, BorderLayout.CENTER); // Tabla en el centro
 
         JPanel buttonsPanel = new JPanel();
         buttonsPanel.add(addButton);
@@ -61,8 +68,16 @@ public class ManageUsersView extends JFrame {
     
     // Método para cargar usuarios en la tabla
 public void loadUsers(Object[][] usersData) {
-    String[] columnNames = {"ID", "Correo", "Rol", "Teléfono", "Nombre"};
-    DefaultTableModel model = new DefaultTableModel(usersData, columnNames);
-    usersTable.setModel(model);
+    System.out.println("🔹 Recibiendo datos para la tabla: " + usersData.length + " usuarios.");
+    
+    DefaultTableModel model = (DefaultTableModel) usersTable.getModel();
+    model.setRowCount(0); // Limpiar la tabla
+
+    for (Object[] userRow : usersData) {
+        System.out.println("🔹 Agregando fila a la tabla: " + Arrays.toString(userRow));
+        model.addRow(userRow);
+    }
 }
+
+
 }

@@ -13,7 +13,7 @@ import java.awt.*;
 
 
 public class LoginView extends JFrame {
-    private JTextField mailField;
+    private JTextField emailField;
     private JPasswordField passwordField;
     private JButton loginButton;
     private JButton cancelButton;
@@ -26,7 +26,7 @@ public class LoginView extends JFrame {
         setLocationRelativeTo(null);
         
         //Inicializamos los componentes
-        mailField = new JTextField(20);
+        emailField = new JTextField(20);
         passwordField = new JPasswordField(20);
         loginButton = new JButton("Iniciar sesion");
         cancelButton = new JButton("Cancelar");
@@ -45,7 +45,7 @@ public class LoginView extends JFrame {
         gbc.gridx = 1;
         gbc.gridy = 0;
         gbc.anchor = GridBagConstraints.WEST; // Alinear a la izquierda
-        add(mailField, gbc);
+        add(emailField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
@@ -70,8 +70,8 @@ public class LoginView extends JFrame {
     }     
     
    // Obtener correo ingresado
-   public String getMail(){
-       return mailField.getText();
+   public String getEmail(){
+       return emailField.getText();
    }
    
    //Obtener contrasena ingresada

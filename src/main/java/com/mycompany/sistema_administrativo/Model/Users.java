@@ -11,16 +11,16 @@ package com.mycompany.sistema_administrativo.Model;
 public class Users {
     private String id;
     private String name;
-    private String mail;
+    private String email;
     private String phone;
     private String password;
     private String role;
     
     //Constructor
-    public  Users(String id, String name, String mail, String phone, String password, String role){
+    public  Users(String id, String name, String email, String phone, String password, String role){
         this.id = id;
         this.name = name;
-        this.mail = mail;
+        this.email = email;
         this.phone = phone;
         this.password = password;
         this.role = role;   
@@ -44,12 +44,12 @@ public class Users {
         this.name = name;
     }
     
-    public String getMail(){
-        return mail;
+    public String getEmail(){
+        return email;
     }
     
-    public void setMail(String mail){
-        this.mail = mail;
+    public void setEmail(String email){
+        this.email = email;
     }
     
     public String getPhone(){
@@ -86,7 +86,7 @@ public class Users {
                 "username='" + name + '\'' +
                 ", role='" + role + '\'' +
                 ", phone='" + phone + '\'' +
-                ", email='" + mail + '\'' +
+                ", email='" + email + '\'' +
                 '}';
     }   
 }

@@ -39,7 +39,7 @@ public class LoginController {
 private void handleLogin() {
     System.out.println("🔹 Método handleLogin() ejecutándose...");
 
-    String email = loginView.getMail(); // Obtener correo ingresado
+    String email = loginView.getEmail(); // Obtener correo ingresado
     String password = loginView.getPassword(); // Obtener contraseña ingresada
 
     try (Connection connection = DatabaseConnection.getConnection()) {
