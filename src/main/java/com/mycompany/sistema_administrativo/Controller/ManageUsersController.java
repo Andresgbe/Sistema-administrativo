@@ -114,6 +114,7 @@ private void loadUsersFromDataBase(){
 
     
     private void updateUsersTable(){
+        System.out.println("🔹 Actualizando tabla de usuarios...");
         Object[][] data = new Object[users.size()][6];
         
         for (int i = 0; i < users.size(); i++){

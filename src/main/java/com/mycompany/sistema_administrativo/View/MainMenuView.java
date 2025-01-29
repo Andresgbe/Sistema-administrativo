@@ -11,11 +11,16 @@ import com.mycompany.sistema_administrativo.Controller.ManageUsersController;
 import javax.swing.*;
 import java.awt.*;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+
+
 /**
  *
  * @author andresgbe
  */
 public class MainMenuView extends JFrame {
+    private ManageUsersView manageUsersView = null;
     public MainMenuView(String userEmail, String userRole) {
         setTitle("Menú Principal");
         setSize(400, 300);
@@ -43,17 +48,28 @@ public class MainMenuView extends JFrame {
 
         add(panel);
 
-        // Acción para abrir la gestión de usuarios
         manageUsersButton.addActionListener(e -> {
-            new ManageUsersView().setVisible(true);
+            System.out.println("🔹 Botón Gestionar Usuarios presionado.");
+
+            // Verificar si ya hay una ventana abierta
+            if (manageUsersView == null || !manageUsersView.isVisible()) {
+                manageUsersView = new ManageUsersView();
+                new ManageUsersController(manageUsersView);
+                manageUsersView.setVisible(true);
+
+                // Agregar un listener para detectar cuando se cierra
+                manageUsersView.addWindowListener(new WindowAdapter() {
+                    @Override
+                    public void windowClosing(WindowEvent e) {
+                        System.out.println("🔹 Ventana de gestión de usuarios cerrada.");
+                        manageUsersView = null; // Resetear la variable
+                    }
+                });
+            } else {
+                System.out.println("⚠️ Ya hay una ventana abierta.");
+            }
         });
 
-        manageUsersButton.addActionListener(e -> {
-             System.out.println("🔹 Botón Gestionar Usuarios presionado.");
-          ManageUsersView manageUsersView = new ManageUsersView();
-          new ManageUsersController(manageUsersView); // Instanciar el controlador
-          manageUsersView.setVisible(true);
-        });
         
         // Acción para abrir la gestión de productos
         manageProductsButton.addActionListener(e -> {
