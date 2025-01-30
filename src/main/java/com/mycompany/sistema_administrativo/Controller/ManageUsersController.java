@@ -7,6 +7,7 @@ package com.mycompany.sistema_administrativo.Controller;
 import com.mycompany.sistema_administrativo.Database.DatabaseConnection;
 import com.mycompany.sistema_administrativo.View.ManageUsersView;
 import com.mycompany.sistema_administrativo.Model.Users;
+import com.mycompany.sistema_administrativo.View.AddUserView;
 
 import javax.swing.*;
 import java.sql.Connection;
@@ -49,20 +50,44 @@ public ManageUsersController(ManageUsersView manageUsersView) {
 }
 
     
-    private void configureListeners(){
-        manageUsersView.getAddButton().addActionListener(e -> {
-            String userId = JOptionPane.showInputDialog(manageUsersView, "Ingresa el ID del usuario");
-            String userName = JOptionPane.showInputDialog(manageUsersView, "Ingrese el nombre del usuario");
-            String userEmail = JOptionPane.showInputDialog(manageUsersView, "Ingrese el correo del usuario");
-            String userPhone = JOptionPane.showInputDialog(manageUsersView, "Ingrese el numero de telefono");
-            String userPassword = JOptionPane.showInputDialog(manageUsersView, "Ingrese la contrasena");
-            String userRole = JOptionPane.showInputDialog(manageUsersView, "Ingrese el rol del usuario");
-            
-            Users newUser = new Users(userId, userName, userEmail, userPhone, userPassword, userRole);
-            users.add(newUser);
-});
- 
-    }
+private void configureListeners() {
+    manageUsersView.getAddButton().addActionListener(e -> {
+        System.out.println("🔹 Botón 'Agregar Usuario' presionado.");
+
+            // Crear y mostrar la ventana emergente para agregar usuario
+        AddUserView addUserView = new AddUserView(manageUsersView, this);
+        addUserView.setVisible(true);
+
+
+        // Si el usuario presiona "Agregar", obtenemos los datos ingresados
+        addUserView.getAddButton().addActionListener(event -> {
+            String name = addUserView.getUserName();
+            String email = addUserView.getUserEmail();
+            String phone = addUserView.getUserPhone();
+            String password = addUserView.getUserPassword();
+            String role = addUserView.getUserRole();
+
+            // Validamos que los campos no estén vacíos
+            if (name.isEmpty() || email.isEmpty() || phone.isEmpty() || password.isEmpty() || role.isEmpty()) {
+                JOptionPane.showMessageDialog(manageUsersView, "Todos los campos son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Creamos un objeto usuario
+            Users newUser = new Users(name, email, phone, password, role);
+
+            // Llamamos a la función para agregar usuario a la base de datos
+            addUserToDatabase(newUser);
+
+            // Cerramos la ventana emergente
+            addUserView.dispose();
+        });
+
+        // Si el usuario presiona "Cancelar", simplemente cerramos la ventana
+        addUserView.getCancelButton().addActionListener(event -> addUserView.dispose());
+    });
+}
+
     
 private void loadUsersFromDataBase(){
     System.out.println("🔹 Cargando usuarios desde la base de datos...");
@@ -130,7 +155,7 @@ private void loadUsersFromDataBase(){
         manageUsersView.loadUsers(data);
     }
     
-private void addUserToDatabase(Users user) {
+public void addUserToDatabase(Users user) {
     // Validación: No permitir valores vacíos
     if (user.getName().isEmpty() || user.getEmail().isEmpty() || user.getPhone().isEmpty() ||
         user.getPassword().isEmpty() || user.getRole().isEmpty()) {

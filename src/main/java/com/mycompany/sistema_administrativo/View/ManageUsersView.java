@@ -22,7 +22,7 @@ public class ManageUsersView extends JFrame {
     
     public ManageUsersView() {
         setTitle("Gestión de Usuarios");
-        setSize(600, 400);
+        setSize(800, 600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
 

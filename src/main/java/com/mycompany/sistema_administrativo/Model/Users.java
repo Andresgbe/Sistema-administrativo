@@ -4,6 +4,8 @@
  */
 package com.mycompany.sistema_administrativo.Model;
 
+import org.mindrot.jbcrypt.BCrypt;
+
 /**
  *
  * @author andresgbe
@@ -17,24 +19,27 @@ public class Users {
     private String role;
     
     //Constructor
-    public  Users(String id, String name, String email, String phone, String password, String role){
+    public Users(String id, String name, String email, String phone, String password, String role) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.phone = phone;
         this.password = password;
-        this.role = role;   
-}
+        this.role = role;
+    }
+    
+     public Users(String name, String email, String phone, String password, String role) {
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+        this.password = password;
+        this.role = role;
+    }
 
     //getters & setters
     public String getId(){
         return id;
     }
-    
-    public void setId(String id){
-        this.id = id;
-    }
-    
     
     public String getName(){
         return name;
@@ -76,10 +81,9 @@ public class Users {
         this.role = role;
     }
     
-    public boolean ValidatePassword(String inputPassword){
-        return this.password.equals(inputPassword);
+    public boolean ValidatePassword(String inputPassword) {
+        return BCrypt.checkpw(inputPassword, this.password); // Comparar usando BCrypt
     }
-    
     @Override
     public String toString() {
         return "Users{" +
@@ -90,4 +94,6 @@ public class Users {
                 '}';
     }   
 }
+
+
 
