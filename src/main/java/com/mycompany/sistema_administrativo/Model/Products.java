@@ -3,34 +3,53 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.mycompany.sistema_administrativo.Model;
+
+
 /**
  *
  * @author andresgbe
 */
 
 public class Products {
-    private String id;
-    private String name;  // Antes: nombre
-    private String description; // Nueva propiedad
-    private double price; // Antes: precio
-    private int stock;    // Antes: cantidad
-
+    private int id;
+    private String code;
+    private String name;
+    private String description;
+    private double price;
+    private int stock;
+    
     // Constructor
-    public Products(String id, String name, String description, double price, int stock) {
+    public Products(int id, String code, String name, String description, double price, int stock) {
         this.id = id;
+        this.code = code;
+        this.name = name;
+        this.description = description;
+        this.price = price;
+        this.stock = stock;
+    }
+    
+    public Products(String code, String name, String description, double price, int stock) {
+        this.code = code;
         this.name = name;
         this.description = description;
         this.price = price;
         this.stock = stock;
     }
 
-    // Getters & setters
-    public String getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(int id) {
         this.id = id;
+    }
+
+    public String getCode() {
+        return code;
+    }
+
+    public void setCode(String code) {
+        this.code = code;
     }
 
     public String getName() {
@@ -65,16 +84,6 @@ public class Products {
         this.stock = stock;
     }
 
-    // @Override method
-    @Override
-    public String toString() {
-        return "Products{" +
-                "id='" + id + '\'' +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", price=" + price +
-                ", stock=" + stock +
-                '}';
-    }
+
 }
 
