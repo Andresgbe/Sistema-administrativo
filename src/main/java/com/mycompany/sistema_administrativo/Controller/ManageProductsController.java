@@ -91,36 +91,40 @@ public class ManageProductsController {
         addProductsView.setVisible(true);
     }
 
-    public void addProductToDatabase(String code, String name, String description, double price, int stock) {
-        System.out.println("🔹 Agregando producto a la base de datos...");
-        System.out.println("➡️ Codigo: " + code);
-        System.out.println("➡️ Nombre: " + name);
-        System.out.println("➡️ Descripción: " + description);
-        System.out.println("➡️ Precio: " + price);
-        System.out.println("➡️ Stock: " + stock);
+public void addProductToDatabase(String code, String name, String description, double price, int stock) {
+    System.out.println("🔹 Agregando producto a la base de datos...");
+    System.out.println("➡️ Código: " + code);
+    System.out.println("➡️ Nombre: " + name);
+    System.out.println("➡️ Descripción: " + description);
+    System.out.println("➡️ Precio: " + price);
+    System.out.println("➡️ Stock: " + stock);
 
-        String query = "INSERT INTO products (code, name, description, price, stock) VALUES (?, ?, ?, ?)"; // 🔥 Cambio aquí
-        try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, code);
-            statement.setString(2, name);
-            statement.setString(3, description);
-            statement.setDouble(4, price);
-            statement.setInt(5, stock);
+    // 🔥 CORRECCIÓN: Ahora también insertamos "code" en la base de datos
+    String query = "INSERT INTO products (code, name, description, price, stock) VALUES (?, ?, ?, ?, ?)";
 
-            int rowsInserted = statement.executeUpdate();
-            if (rowsInserted > 0) {
-                System.out.println("✅ Producto agregado con éxito.");
-                JOptionPane.showMessageDialog(null, "Producto agregado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-                loadProductsFromDatabase();
-            } else {
-                System.out.println("❌ No se pudo agregar el producto.");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Error al agregar el producto a la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+    try (Connection connection = DatabaseConnection.getConnection();
+         PreparedStatement statement = connection.prepareStatement(query)) {
+        statement.setString(1, code);
+        statement.setString(2, name);
+        statement.setString(3, description);
+        statement.setDouble(4, price);
+        statement.setInt(5, stock);
+
+        int rowsInserted = statement.executeUpdate();
+        if (rowsInserted > 0) {
+            System.out.println("✅ Producto agregado con éxito.");
+            JOptionPane.showMessageDialog(null, "Producto agregado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            loadProductsFromDatabase();
+        } else {
+            System.out.println("❌ No se pudo agregar el producto.");
         }
+    } catch (SQLException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error al agregar el producto a la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
     }
+}
+
+
 
     private void deleteProduct() {
         int selectedRow = manageProductsView.getProductsTable().getSelectedRow();

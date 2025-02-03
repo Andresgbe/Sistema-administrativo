@@ -21,14 +21,14 @@ public class AddProductsView extends JDialog {
     public AddProductsView(JFrame parent, ManageProductsController controller) {
         super(parent, "Agregar Producto", true);
         this.controller = controller;
-        setSize(350, 250);
-        setLayout(new GridLayout(5, 2, 10, 10));
+        setSize(400, 300);
+        setLayout(new GridLayout(6, 2, 10, 10));
 
-        // Campos de entrada
-        add(new JLabel("Codigo:"));
+        // 🔥 AGREGAMOS CAMPO PARA CODE
+        add(new JLabel("Código:"));
         codeField = new JTextField();
         add(codeField);
-        
+
         add(new JLabel("Nombre:"));
         nameField = new JTextField();
         add(nameField);
