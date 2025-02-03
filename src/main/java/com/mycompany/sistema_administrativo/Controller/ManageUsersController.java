@@ -8,6 +8,7 @@ import com.mycompany.sistema_administrativo.Database.DatabaseConnection;
 import com.mycompany.sistema_administrativo.View.ManageUsersView;
 import com.mycompany.sistema_administrativo.Model.Users;
 import com.mycompany.sistema_administrativo.View.AddUserView;
+import com.mycompany.sistema_administrativo.View.EditUserView;
 
 import javax.swing.*;
 import java.sql.Connection;
@@ -27,11 +28,11 @@ import java.awt.Cursor;
 
 import org.mindrot.jbcrypt.BCrypt;
 
-
 /**
  *
  * @author andresgbe
  */
+
 public class ManageUsersController {
     private ManageUsersView manageUsersView;
     private List<Users> users = new ArrayList<>();
@@ -49,7 +50,7 @@ public ManageUsersController(ManageUsersView manageUsersView) {
     updateUsersTable();
 }
 
-    
+
 private void configureListeners() {
     manageUsersView.getAddButton().addActionListener(e -> {
         System.out.println("🔹 Botón 'Agregar Usuario' presionado.");
@@ -106,6 +107,67 @@ private void configureListeners() {
             deleteUserFromDatabase(userId);
         }
     });
+
+   manageUsersView.getEditButton().addActionListener(e -> {
+    int selectedRow = manageUsersView.getUsersTable().getSelectedRow();
+
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(manageUsersView, "Selecciona un usuario para editar.", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+
+    // Obtener ID del usuario seleccionado
+    String userId = manageUsersView.getUsersTable().getValueAt(selectedRow, 0).toString();
+
+    // Obtener el usuario de la lista
+    Users userToEdit = users.stream()
+            .filter(user -> user.getId().equals(userId))
+            .findFirst()
+            .orElse(null);
+
+    if (userToEdit == null) {
+        JOptionPane.showMessageDialog(manageUsersView, "Usuario no encontrado.", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+
+    // Crear y mostrar la ventana de edición
+    EditUserView editUserView = new EditUserView(manageUsersView);
+    editUserView.setUserName(userToEdit.getName());
+    editUserView.setUserEmail(userToEdit.getEmail());
+    editUserView.setUserPhone(userToEdit.getPhone());
+    editUserView.setUserRole(userToEdit.getRole());
+
+    editUserView.getSaveButton().addActionListener(event -> {
+        String name = editUserView.getUserName();
+        String email = editUserView.getUserEmail();
+        String phone = editUserView.getUserPhone();
+        String password = editUserView.getUserPassword();
+        String role = editUserView.getUserRole();
+
+        // Validar que los campos no estén vacíos
+        if (name.isEmpty() || email.isEmpty() || phone.isEmpty() || role.isEmpty()) {
+            JOptionPane.showMessageDialog(manageUsersView, "Todos los campos excepto la contraseña son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Actualizar el usuario en la base de datos
+        userToEdit.setName(name);
+        userToEdit.setEmail(email);
+        userToEdit.setPhone(phone);
+        userToEdit.setRole(role);
+
+        if (!password.isEmpty()) {
+            userToEdit.setPassword(BCrypt.hashpw(password, BCrypt.gensalt()));
+        }
+
+        updateUserInDatabase(userToEdit);
+        editUserView.dispose();
+    });
+
+    editUserView.getCancelButton().addActionListener(event -> editUserView.dispose());
+
+    editUserView.setVisible(true);
+});
 
 }
 
@@ -240,4 +302,32 @@ private void deleteUserFromDatabase(String userId) {
     }
 }
 
+private void updateUserInDatabase(Users user) {
+    String query = "UPDATE usuarios SET name = ?, email = ?, phone = ?, password = ?, role = ? WHERE id = ?";
+
+    try (Connection connection = DatabaseConnection.getConnection();
+         PreparedStatement statement = connection.prepareStatement(query)) {
+
+        statement.setString(1, user.getName());
+        statement.setString(2, user.getEmail());
+        statement.setString(3, user.getPhone());
+        statement.setString(4, user.getPassword());
+        statement.setString(5, user.getRole());
+        statement.setString(6, user.getId());
+
+        int rowsUpdated = statement.executeUpdate();
+        if (rowsUpdated > 0) {
+            JOptionPane.showMessageDialog(null, "Usuario actualizado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            
+            // Recargar los datos en la tabla
+            loadUsersFromDataBase();
+            updateUsersTable();
+        } else {
+            JOptionPane.showMessageDialog(null, "No se encontró el usuario para actualizar.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error al actualizar el usuario en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+    }
+}
 }

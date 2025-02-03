@@ -64,7 +64,7 @@ public class ManageUsersView extends JFrame {
     
     public JButton getDeleteButton(){
         return deleteButton;
-    }  
+    }   
     
     // Método para cargar usuarios en la tabla
 public void loadUsers(Object[][] usersData) {
