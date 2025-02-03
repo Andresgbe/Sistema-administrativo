@@ -78,6 +78,4 @@ public void loadUsers(Object[][] usersData) {
         model.addRow(userRow);
     }
 }
-
-
 }

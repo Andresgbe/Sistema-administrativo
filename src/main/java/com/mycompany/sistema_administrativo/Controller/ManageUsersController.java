@@ -86,6 +86,27 @@ private void configureListeners() {
         // Si el usuario presiona "Cancelar", simplemente cerramos la ventana
         addUserView.getCancelButton().addActionListener(event -> addUserView.dispose());
     });
+    
+    manageUsersView.getDeleteButton().addActionListener(e -> {
+        int selectedRow = manageUsersView.getUsersTable().getSelectedRow();
+    
+        if (selectedRow == -1) {
+            JOptionPane.showMessageDialog(manageUsersView, "Selecciona un usuario para eliminar.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Obtener ID del usuario seleccionado
+        String userId = manageUsersView.getUsersTable().getValueAt(selectedRow, 0).toString();
+
+        // Confirmación
+        int confirm = JOptionPane.showConfirmDialog(manageUsersView, 
+            "¿Estás seguro de que deseas eliminar este usuario?", "Confirmar Eliminación", JOptionPane.YES_NO_OPTION);
+    
+        if (confirm == JOptionPane.YES_OPTION) {
+            deleteUserFromDatabase(userId);
+        }
+    });
+
 }
 
     
@@ -194,4 +215,29 @@ public void addUserToDatabase(Users user) {
         JOptionPane.showMessageDialog(null, "Error al agregar el usuario a la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
     }
 }
+
+private void deleteUserFromDatabase(String userId) {
+    String query = "DELETE FROM usuarios WHERE id = ?";
+    
+    try (Connection connection = DatabaseConnection.getConnection();
+         PreparedStatement statement = connection.prepareStatement(query)) {
+
+        statement.setString(1, userId);
+
+        int rowsDeleted = statement.executeUpdate();
+        if (rowsDeleted > 0) {
+            JOptionPane.showMessageDialog(null, "Usuario eliminado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            
+            // Recargar la tabla
+            loadUsersFromDataBase();
+            updateUsersTable();
+        } else {
+            JOptionPane.showMessageDialog(null, "No se pudo eliminar el usuario.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error al eliminar el usuario de la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+    }
+}
+
 }
