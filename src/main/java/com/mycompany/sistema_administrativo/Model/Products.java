@@ -4,22 +4,21 @@
  */
 package com.mycompany.sistema_administrativo.Model;
 
-
 /**
  *
  * @author andresgbe
-*/
-
+ */
 public class Products {
-    private int id;
+    // Atributos de los productos
+    private String id;
     private String code;
     private String name;
     private String description;
-    private double price;
-    private int stock;
+    private float price;
+    private int stock;  
     
-    // Constructor
-    public Products(int id, String code, String name, String description, double price, int stock) {
+    // Constructor que se usa cuando se recupera productos en la base de datos
+    public Products(String id, String code, String name, String description, float price, int stock){
         this.id = id;
         this.code = code;
         this.name = name;
@@ -28,20 +27,17 @@ public class Products {
         this.stock = stock;
     }
     
-    public Products(String code, String name, String description, double price, int stock) {
+    //Constructor para agregar un nuevo producto
+    public Products(String code, String name, String description, float price, int stock){
         this.code = code;
         this.name = name;
         this.description = description;
         this.price = price;
-        this.stock = stock;
+        this.stock = stock; 
     }
 
-    public int getId() {
+    public String getId() {
         return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
     }
 
     public String getCode() {
@@ -68,11 +64,11 @@ public class Products {
         this.description = description;
     }
 
-    public double getPrice() {
+    public float getPrice() {
         return price;
     }
 
-    public void setPrice(double price) {
+    public void setPrice(float price) {
         this.price = price;
     }
 
@@ -83,7 +79,18 @@ public class Products {
     public void setStock(int stock) {
         this.stock = stock;
     }
-
+    
+    
+    // Sobreescribe el metodo toString() para mostrar la informacion de una forma mas legible
+    @Override
+    public String toString() {
+        return "Products{" +
+                "code='" + code + '\'' +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", price=" + price +
+                ", stock=" + stock +
+                '}';
+    }
 
 }
-

@@ -10,76 +10,59 @@ import javax.swing.table.DefaultTableModel;
 import java.util.Arrays;
 
 /**
- * Vista para la gestión de productos
- * Similar a ManageUsersView
- */
-import javax.swing.*;
-import java.awt.*;
-import javax.swing.table.DefaultTableModel;
-
-/**
- * Vista para la gestión de productos
- * Similar a ManageUsersView
+ *
+ * @author andresgbe
  */
 public class ManageProductsView extends JFrame {
     private JTable productsTable;
     private DefaultTableModel tableModel;
-    private JButton addButton;
     private JButton editButton;
-    private JButton deleteButton;
-
-    public ManageProductsView() {
+    
+    public ManageProductsView(){
         setTitle("Gestión de Productos");
-        setSize(800, 600);
+        setSize(800,600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
-
-        // Crear modelo de la tabla con las columnas correctas
-        String[] columnNames = {"ID", "Nombre", "Descripción", "Precio", "Stock"};
+        
+        // Crear modelo de la tabla con las columnas de productos
+        String[] columnNames = {"ID", "Código", "Nombre", "Descripción", "Precio", "Stock"};
         tableModel = new DefaultTableModel(columnNames, 0);
         productsTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(productsTable);
-
-        // Crear botones
-        addButton = new JButton("Agregar Producto");
+        
+        // Crear botón "Editar Producto"
         editButton = new JButton("Editar Producto");
-        deleteButton = new JButton("Eliminar Producto");
-
+     
         // Diseño de la interfaz
         JPanel panel = new JPanel(new BorderLayout());
-        panel.add(scrollPane, BorderLayout.CENTER);
-
-        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        buttonsPanel.add(addButton);
+        panel.add(scrollPane, BorderLayout.CENTER); // Tabla en el centro
+        
+        JPanel buttonsPanel = new JPanel();
         buttonsPanel.add(editButton);
-        buttonsPanel.add(deleteButton);
-        panel.add(buttonsPanel, BorderLayout.SOUTH);
+        panel.add(buttonsPanel, BorderLayout.SOUTH); // Botón en la parte inferior
 
         add(panel);
     }
 
-    // Métodos para acceder a los componentes
+    // Métodos para acceder a la tabla y el botón
     public JTable getProductsTable() {
         return productsTable;
-    }
-
-    public JButton getAddButton() {
-        return addButton;
     }
 
     public JButton getEditButton() {
         return editButton;
     }
-
-    public JButton getDeleteButton() {
-        return deleteButton;
-    }
-
-    // Método para cargar productos en la tabla
+    
     public void loadProducts(Object[][] productsData) {
-        tableModel.setRowCount(0); // Limpiar la tabla
-        for (Object[] productRow : productsData) {
-            tableModel.addRow(productRow);
-        }
+    System.out.println("🔹 Cargando productos en la tabla...");
+
+    DefaultTableModel model = (DefaultTableModel) productsTable.getModel();
+    model.setRowCount(0); // Limpiar la tabla antes de agregar datos nuevos
+
+    for (Object[] productRow : productsData) {
+        System.out.println("🔹 Agregando producto: " + Arrays.toString(productRow));
+        model.addRow(productRow); // Agregar cada fila de productos al modelo de la tabla
     }
+}
+
 }

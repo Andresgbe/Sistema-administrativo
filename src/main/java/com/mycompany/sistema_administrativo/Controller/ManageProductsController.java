@@ -6,8 +6,8 @@ package com.mycompany.sistema_administrativo.Controller;
 
 import com.mycompany.sistema_administrativo.Database.DatabaseConnection;
 import com.mycompany.sistema_administrativo.View.ManageProductsView;
-import com.mycompany.sistema_administrativo.View.AddProductsView;
 import com.mycompany.sistema_administrativo.Model.Products;
+import com.mycompany.sistema_administrativo.View.EditProductView;
 
 import javax.swing.*;
 import java.sql.Connection;
@@ -17,67 +17,117 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ *
+ * @author andresgbe
+ */
 public class ManageProductsController {
     private ManageProductsView manageProductsView;
-    private List<Products> products = new ArrayList<>();
-
-    public ManageProductsController(ManageProductsView manageProductsView) {
-        this.manageProductsView = manageProductsView;
-        System.out.println("🔹 ManageProductsController inicializado.");
-        configureListeners();
-        loadProductsFromDatabase();
-    }
-
-    private void configureListeners() {
-        System.out.println("🔹 Configurando listeners en ManageProductsView...");
-
-        manageProductsView.getAddButton().addActionListener(e -> {
-            System.out.println("🟢 Botón 'Agregar Producto' presionado.");
-            openAddProductView();
-        });
-
-        manageProductsView.getDeleteButton().addActionListener(e -> {
-            System.out.println("🟠 Botón 'Eliminar Producto' presionado.");
-            deleteProduct();
-        });
-    }
-
-    private void loadProductsFromDatabase() {
-    System.out.println("🔹 Cargando productos desde la base de datos...");
+    private List<Products> products = new ArrayList<>(); 
     
-    // 🔥 Corrección: Incluir 'code' en la consulta SQL
-    String query = "SELECT id, code, name, description, price, stock FROM products";
+    public ManageProductsController(ManageProductsView manageProductsView){
+        this.manageProductsView = manageProductsView;
+        configureListeners();
+        loadProductsFromDatabase(); // Cargar productos en la tabla al abrir
+        updateProductsTable();
+    }
+    
+       private void configureListeners() {
+        manageProductsView.getEditButton().addActionListener(e -> {
+            int selectedRow = manageProductsView.getProductsTable().getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(manageProductsView, "Selecciona un producto para editar.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
 
+            // Obtener ID del producto seleccionado
+            String productId = manageProductsView.getProductsTable().getValueAt(selectedRow, 0).toString();
+
+            // Buscar el producto en la lista
+            Products productToEdit = products.stream()
+                    .filter(product -> product.getId().equals(productId))
+                    .findFirst()
+                    .orElse(null);
+
+            if (productToEdit == null) {
+                JOptionPane.showMessageDialog(manageProductsView, "Producto no encontrado.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            // Crear y mostrar la ventana de edición
+            EditProductView editProductView = new EditProductView(manageProductsView);
+            editProductView.setProductCode(productToEdit.getCode());
+            editProductView.setProductName(productToEdit.getName());
+            editProductView.setProductDescription(productToEdit.getDescription());
+            editProductView.setProductPrice(productToEdit.getPrice());
+            editProductView.setProductStock(productToEdit.getStock());
+
+            editProductView.getSaveButton().addActionListener(event -> {
+                String code = editProductView.getProductCode();
+                String name = editProductView.getProductName();
+                String description = editProductView.getProductDescription();
+                float price = editProductView.getProductPrice();
+                int stock = editProductView.getProductStock();
+
+                if (code.isEmpty() || name.isEmpty() || description.isEmpty()) {
+                    JOptionPane.showMessageDialog(manageProductsView, "Todos los campos son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+
+                productToEdit.setCode(code);
+                productToEdit.setName(name);
+                productToEdit.setDescription(description);
+                productToEdit.setPrice(price);
+                productToEdit.setStock(stock);
+
+                updateProductInDatabase(productToEdit);
+                editProductView.dispose();
+            });
+
+            editProductView.getCancelButton().addActionListener(event -> editProductView.dispose());
+
+            editProductView.setVisible(true);
+        });
+    }
+
+       private void loadProductsFromDatabase() {
+    System.out.println("🔹 Cargando productos desde la base de datos...");
+
+    String query = "SELECT id, code, name, description, price, stock FROM productos"; // <--- Cambio aquí
     try (Connection connection = DatabaseConnection.getConnection();
          PreparedStatement statement = connection.prepareStatement(query);
          ResultSet resultSet = statement.executeQuery()) {
-        
-        products.clear();
+
+        products.clear(); // Limpiar la lista antes de cargar los nuevos productos
         List<Object[]> productList = new ArrayList<>();
-        
+
         while (resultSet.next()) {
             Products product = new Products(
-                    resultSet.getInt("id"),
+                    resultSet.getString("id"),
                     resultSet.getString("code"),
                     resultSet.getString("name"),
                     resultSet.getString("description"),
-                    resultSet.getDouble("price"),
+                    resultSet.getFloat("price"),
                     resultSet.getInt("stock")
             );
+
             products.add(product);
-            productList.add(new Object[]{
+            // Agregar los datos en formato de tabla
+            Object[] productRow = {
                     product.getId(),
-                    product.getCode(),  // 🔥 Incluir 'code' en la tabla
+                    product.getCode(),
                     product.getName(),
                     product.getDescription(),
                     product.getPrice(),
                     product.getStock()
-            });
+            };
+            productList.add(productRow);
+            System.out.println("🔹 Producto agregado: " + product.getName());
         }
-        
+
+        System.out.println("🔹 Total productos cargados: " + productList.size());
         manageProductsView.loadProducts(productList.toArray(new Object[0][0]));
-        System.out.println("✅ Productos cargados correctamente.");
-        
+
     } catch (SQLException e) {
         e.printStackTrace();
         JOptionPane.showMessageDialog(null, "Error al cargar los productos de la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
@@ -85,72 +135,49 @@ public class ManageProductsController {
 }
 
 
-    private void openAddProductView() {
-        System.out.println("🟢 Abriendo AddProductsView...");
-        AddProductsView addProductsView = new AddProductsView(manageProductsView, this);
-        addProductsView.setVisible(true);
+    private void updateProductsTable() {
+    System.out.println("🔹 Actualizando tabla de productos...");
+    
+    Object[][] data = new Object[products.size()][6]; // 6 columnas (ID, Código, Nombre, Descripción, Precio, Stock)
+
+    for (int i = 0; i < products.size(); i++) {
+        Products product = products.get(i);
+        data[i][0] = product.getId();
+        data[i][1] = product.getCode();
+        data[i][2] = product.getName();
+        data[i][3] = product.getDescription();
+        data[i][4] = product.getPrice();
+        data[i][5] = product.getStock();
     }
 
-public void addProductToDatabase(String code, String name, String description, double price, int stock) {
-    System.out.println("🔹 Agregando producto a la base de datos...");
-    System.out.println("➡️ Código: " + code);
-    System.out.println("➡️ Nombre: " + name);
-    System.out.println("➡️ Descripción: " + description);
-    System.out.println("➡️ Precio: " + price);
-    System.out.println("➡️ Stock: " + stock);
-
-    // 🔥 CORRECCIÓN: Ahora también insertamos "code" en la base de datos
-    String query = "INSERT INTO products (code, name, description, price, stock) VALUES (?, ?, ?, ?, ?)";
-
-    try (Connection connection = DatabaseConnection.getConnection();
-         PreparedStatement statement = connection.prepareStatement(query)) {
-        statement.setString(1, code);
-        statement.setString(2, name);
-        statement.setString(3, description);
-        statement.setDouble(4, price);
-        statement.setInt(5, stock);
-
-        int rowsInserted = statement.executeUpdate();
-        if (rowsInserted > 0) {
-            System.out.println("✅ Producto agregado con éxito.");
-            JOptionPane.showMessageDialog(null, "Producto agregado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-            loadProductsFromDatabase();
-        } else {
-            System.out.println("❌ No se pudo agregar el producto.");
-        }
-    } catch (SQLException e) {
-        e.printStackTrace();
-        JOptionPane.showMessageDialog(null, "Error al agregar el producto a la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
-    }
+    manageProductsView.loadProducts(data);
 }
 
+    
+    
+    private void updateProductInDatabase(Products product) {
+        String query = "UPDATE productos SET code = ?, name = ?, description = ?, price = ?, stock = ? WHERE id = ?";
 
-
-    private void deleteProduct() {
-        int selectedRow = manageProductsView.getProductsTable().getSelectedRow();
-        if (selectedRow == -1) {
-            JOptionPane.showMessageDialog(manageProductsView, "Selecciona un producto para eliminar.", "Error", JOptionPane.ERROR_MESSAGE);
-            return;
-        }
-        String productId = manageProductsView.getProductsTable().getValueAt(selectedRow, 0).toString();
-        System.out.println("🟠 Eliminando producto con ID: " + productId);
-
-        String query = "DELETE FROM products WHERE id = ?"; // 🔥 Cambio aquí
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(query)) {
-            statement.setString(1, productId);
-            int rowsDeleted = statement.executeUpdate();
-            if (rowsDeleted > 0) {
-                System.out.println("✅ Producto eliminado correctamente.");
-                JOptionPane.showMessageDialog(null, "Producto eliminado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+
+            statement.setString(1, product.getCode());
+            statement.setString(2, product.getName());
+            statement.setString(3, product.getDescription());
+            statement.setFloat(4, product.getPrice());
+            statement.setInt(5, product.getStock());
+            statement.setString(6, product.getId());
+
+            int rowsUpdated = statement.executeUpdate();
+            if (rowsUpdated > 0) {
+                JOptionPane.showMessageDialog(null, "Producto actualizado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
                 loadProductsFromDatabase();
             } else {
-                System.out.println("❌ No se pudo eliminar el producto.");
+                JOptionPane.showMessageDialog(null, "No se encontró el producto para actualizar.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Error al eliminar el producto de la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Error al actualizar el producto en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 }
-

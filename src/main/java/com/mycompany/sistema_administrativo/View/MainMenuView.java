@@ -4,8 +4,8 @@
  */
 package com.mycompany.sistema_administrativo.View;
 
-import com.mycompany.sistema_administrativo.Controller.ManageProductsController;
 import com.mycompany.sistema_administrativo.Controller.ManageUsersController;
+import com.mycompany.sistema_administrativo.Controller.ManageProductsController;
 
 import javax.swing.*;
 import java.awt.*;
@@ -20,7 +20,7 @@ import java.awt.event.WindowEvent;
  */
 public class MainMenuView extends JFrame {
     private ManageUsersView manageUsersView = null;
-    private ManageProductsView manageProductsView = null;
+
    
     
     public MainMenuView(String userEmail, String userRole) {
@@ -72,25 +72,12 @@ public class MainMenuView extends JFrame {
             }
         });
 
-        
-       manageProductsButton.addActionListener(e -> {
-            System.out.println("🔹 Botón Gestionar Productos presionado.");
-            if (manageProductsView == null || !manageProductsView.isVisible()) {
-                manageProductsView = new ManageProductsView();
-                new ManageProductsController(manageProductsView);  // 🔥 Aquí enlazamos la vista con el controlador
-                manageProductsView.setVisible(true);
+    manageProductsButton.addActionListener(e -> {
+        ManageProductsView manageProductsView = new ManageProductsView();
+        ManageProductsController manageProductsController = new ManageProductsController(manageProductsView);
+        manageProductsView.setVisible(true);
+    });
 
-                manageProductsView.addWindowListener(new WindowAdapter() {
-                    @Override
-                    public void windowClosing(WindowEvent e) {
-                        System.out.println("🔹 Ventana de gestión de productos cerrada.");
-                        manageProductsView = null;
-                    }
-                });
-            } else {
-                System.out.println("⚠️ Ya hay una ventana de productos abierta.");
-            }
-        });
 
         // Acción para cerrar sesión
         logoutButton.addActionListener(e -> {

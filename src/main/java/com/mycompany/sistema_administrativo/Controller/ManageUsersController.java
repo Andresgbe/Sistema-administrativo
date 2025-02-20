@@ -55,7 +55,7 @@ private void configureListeners() {
     manageUsersView.getAddButton().addActionListener(e -> {
         System.out.println("🔹 Botón 'Agregar Usuario' presionado.");
 
-            // Crear y mostrar la ventana emergente para agregar usuario
+        // Crear y mostrar la ventana emergente para agregar usuario
         AddUserView addUserView = new AddUserView(manageUsersView, this);
         addUserView.setVisible(true);
 
@@ -108,9 +108,9 @@ private void configureListeners() {
         }
     });
 
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
    manageUsersView.getEditButton().addActionListener(e -> {
     int selectedRow = manageUsersView.getUsersTable().getSelectedRow();
-
     if (selectedRow == -1) {
         JOptionPane.showMessageDialog(manageUsersView, "Selecciona un usuario para editar.", "Error", JOptionPane.ERROR_MESSAGE);
         return;
@@ -194,7 +194,6 @@ private void loadUsersFromDataBase(){
             );
 
             users.add(user);
-
             // Agregar los datos en formato de tabla
             Object[] userRow = {
                 user.getId(),
@@ -204,7 +203,6 @@ private void loadUsersFromDataBase(){
                 user.getRole()
             };
             userList.add(userRow);
-
             System.out.println("🔹 Usuario agregado: " + Arrays.toString(userRow));
         }
 
