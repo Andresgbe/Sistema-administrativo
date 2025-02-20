@@ -8,6 +8,7 @@ import com.mycompany.sistema_administrativo.Database.DatabaseConnection;
 import com.mycompany.sistema_administrativo.View.ManageProductsView;
 import com.mycompany.sistema_administrativo.Model.Products;
 import com.mycompany.sistema_administrativo.View.EditProductView;
+import com.mycompany.sistema_administrativo.View.AddProductView;
 
 import javax.swing.*;
 import java.sql.Connection;
@@ -88,6 +89,50 @@ public class ManageProductsController {
 
             editProductView.setVisible(true);
         });
+        
+        ////////////////////////////////////////////////////////////////////////////
+        manageProductsView.getAddButton().addActionListener(e -> {
+    AddProductView addProductView = new AddProductView(manageProductsView);
+    
+    // Acción de guardar producto
+    addProductView.getSaveButton().addActionListener(event -> {
+        String code = addProductView.getProductCode();
+        String name = addProductView.getProductName();
+        String description = addProductView.getProductDescription();
+        float price = addProductView.getProductPrice();
+        int stock = addProductView.getProductStock();
+
+        // Validación de campos
+        if (code.isEmpty() || name.isEmpty() || description.isEmpty()) {
+            JOptionPane.showMessageDialog(manageProductsView, "Todos los campos son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
+        // Crear el objeto producto
+        Products newProduct = new Products(code, name, description, price, stock);
+        addProductToDatabase(newProduct);  // Insertar el producto en la base de datos
+        addProductView.dispose();  // Cerrar la ventana
+    });
+
+    // Acción de cancelar
+    addProductView.getCancelButton().addActionListener(event -> addProductView.dispose());
+
+    addProductView.setVisible(true);
+});
+     // Vinculamos el botón "Eliminar Producto"
+manageProductsView.getDeleteButton().addActionListener(e -> {
+    int selectedRow = manageProductsView.getProductsTable().getSelectedRow();
+    
+    if (selectedRow == -1) {
+        JOptionPane.showMessageDialog(manageProductsView, "Selecciona un producto para eliminar.", "Error", JOptionPane.ERROR_MESSAGE);
+        return;
+    }
+
+    // Obtener el ID del producto seleccionado
+    String productId = manageProductsView.getProductsTable().getValueAt(selectedRow, 0).toString();
+    deleteProductFromDatabase(productId); // Eliminar producto de la base de datos
+});
+
     }
 
        private void loadProductsFromDatabase() {
@@ -180,4 +225,54 @@ public class ManageProductsController {
             JOptionPane.showMessageDialog(null, "Error al actualizar el producto en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
+    
+    private void addProductToDatabase(Products product) {
+    String query = "INSERT INTO productos (code, name, description, price, stock) VALUES (?, ?, ?, ?, ?)";
+
+    try (Connection connection = DatabaseConnection.getConnection();
+         PreparedStatement statement = connection.prepareStatement(query)) {
+
+        statement.setString(1, product.getCode());
+        statement.setString(2, product.getName());
+        statement.setString(3, product.getDescription());
+        statement.setFloat(4, product.getPrice());
+        statement.setInt(5, product.getStock());
+
+        int rowsInserted = statement.executeUpdate();
+        if (rowsInserted > 0) {
+            JOptionPane.showMessageDialog(null, "Producto agregado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            loadProductsFromDatabase(); // Recargar los productos
+        } else {
+            JOptionPane.showMessageDialog(null, "Error al agregar el producto.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error al agregar el producto en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+    }
 }
+
+    private void deleteProductFromDatabase(String productId) {
+    String query = "DELETE FROM productos WHERE id = ?";
+
+    try (Connection connection = DatabaseConnection.getConnection();
+         PreparedStatement statement = connection.prepareStatement(query)) {
+
+        statement.setString(1, productId);
+
+        int rowsDeleted = statement.executeUpdate();
+        if (rowsDeleted > 0) {
+            JOptionPane.showMessageDialog(null, "Producto eliminado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+            loadProductsFromDatabase(); // Recargar los productos
+        } else {
+            JOptionPane.showMessageDialog(null, "No se pudo eliminar el producto.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    } catch (SQLException e) {
+        e.printStackTrace();
+        JOptionPane.showMessageDialog(null, "Error al eliminar el producto en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+    }
+}
+
+}
+
+
+

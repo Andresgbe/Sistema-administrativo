@@ -16,7 +16,7 @@ import java.util.Arrays;
 public class ManageProductsView extends JFrame {
     private JTable productsTable;
     private DefaultTableModel tableModel;
-    private JButton editButton;
+    private JButton editButton, addButton, deleteButton;
     
     public ManageProductsView(){
         setTitle("Gestión de Productos");
@@ -32,13 +32,17 @@ public class ManageProductsView extends JFrame {
         
         // Crear botón "Editar Producto"
         editButton = new JButton("Editar Producto");
+        addButton = new JButton("Agregar Producto"); 
+        deleteButton = new JButton("Eliminar Producto"); 
      
         // Diseño de la interfaz
         JPanel panel = new JPanel(new BorderLayout());
         panel.add(scrollPane, BorderLayout.CENTER); // Tabla en el centro
         
         JPanel buttonsPanel = new JPanel();
+                buttonsPanel.add(addButton);
         buttonsPanel.add(editButton);
+        buttonsPanel.add(deleteButton);
         panel.add(buttonsPanel, BorderLayout.SOUTH); // Botón en la parte inferior
 
         add(panel);
@@ -51,6 +55,14 @@ public class ManageProductsView extends JFrame {
 
     public JButton getEditButton() {
         return editButton;
+    }
+    
+    public JButton getAddButton() {
+        return addButton;
+    }
+    
+    public JButton getDeleteButton() {
+        return deleteButton;
     }
     
     public void loadProducts(Object[][] productsData) {
