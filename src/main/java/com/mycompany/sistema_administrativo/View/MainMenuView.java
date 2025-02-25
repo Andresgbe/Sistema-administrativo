@@ -21,8 +21,6 @@ import java.awt.event.WindowEvent;
 public class MainMenuView extends JFrame {
     private ManageUsersView manageUsersView = null;
 
-   
-    
     public MainMenuView(String userEmail, String userRole) {
         setTitle("Menú Principal");
         setSize(400, 300);
@@ -44,7 +42,7 @@ public class MainMenuView extends JFrame {
         JButton logoutButton = new JButton("Cerrar Sesión");
 
         panel.add(manageUsersButton);
-        panel.add(manageProductsButton);
+        panel.add(manageProductsButton); // Botón para gestionar productos
         panel.add(Box.createRigidArea(new Dimension(0, 20)));
         panel.add(logoutButton);
 
@@ -52,7 +50,6 @@ public class MainMenuView extends JFrame {
 
         manageUsersButton.addActionListener(e -> {
             System.out.println("🔹 Botón Gestionar Usuarios presionado.");
-
             // Verificar si ya hay una ventana abierta
             if (manageUsersView == null || !manageUsersView.isVisible()) {
                 manageUsersView = new ManageUsersView();
@@ -72,12 +69,13 @@ public class MainMenuView extends JFrame {
             }
         });
 
-    manageProductsButton.addActionListener(e -> {
-        ManageProductsView manageProductsView = new ManageProductsView();
-        ManageProductsController manageProductsController = new ManageProductsController(manageProductsView);
-        manageProductsView.setVisible(true);
-    });
-
+        // Integrar la vista para gestionar productos
+        manageProductsButton.addActionListener(e -> {
+            System.out.println("🔹 Botón Gestionar Productos presionado.");
+            ManageProductsView manageProductsView = new ManageProductsView();
+            new ManageProductsController(manageProductsView);
+            manageProductsView.setVisible(true);
+        });
 
         // Acción para cerrar sesión
         logoutButton.addActionListener(e -> {

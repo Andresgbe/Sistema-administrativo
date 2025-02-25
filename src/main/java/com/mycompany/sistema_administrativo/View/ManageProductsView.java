@@ -16,8 +16,8 @@ import java.util.Arrays;
 public class ManageProductsView extends JFrame {
     private JTable productsTable;
     private DefaultTableModel tableModel;
-    private JButton editButton, addButton, deleteButton;
-    
+    private JButton editButton, addButton, deleteButton, backButton;
+
     public ManageProductsView(){
         setTitle("Gestión de Productos");
         setSize(800,600);
@@ -30,25 +30,37 @@ public class ManageProductsView extends JFrame {
         productsTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(productsTable);
         
-        // Crear botón "Editar Producto"
+        // Crear botón "Editar Producto", "Agregar Producto", "Eliminar Producto" y "Volver"
         editButton = new JButton("Editar Producto");
         addButton = new JButton("Agregar Producto"); 
         deleteButton = new JButton("Eliminar Producto"); 
-     
+        backButton = new JButton("Volver"); 
+
         // Diseño de la interfaz
-        JPanel panel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new BorderLayout());  // Usamos BorderLayout para organizar la ventana
         panel.add(scrollPane, BorderLayout.CENTER); // Tabla en el centro
-        
-        JPanel buttonsPanel = new JPanel();
-                buttonsPanel.add(addButton);
+
+        // Crear el panel para el botón "Volver" y agregarlo al BorderLayout.NORTH (parte superior)
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT)); // FlowLayout para alinear a la izquierda
+        topPanel.add(backButton);  // Agregar el botón "Volver"
+        panel.add(topPanel, BorderLayout.NORTH); // Colocar el panel de "Volver" en la parte superior
+
+        // Crear el panel de botones para "Agregar", "Editar" y "Eliminar", y agregarlo a BorderLayout.SOUTH (parte inferior)
+        JPanel buttonsPanel = new JPanel();  // Los demás botones en la parte inferior
+        buttonsPanel.add(addButton);
         buttonsPanel.add(editButton);
         buttonsPanel.add(deleteButton);
-        panel.add(buttonsPanel, BorderLayout.SOUTH); // Botón en la parte inferior
+        panel.add(buttonsPanel, BorderLayout.SOUTH); // Colocar los botones en la parte inferior
 
-        add(panel);
+        add(panel);  // Agregar todo al marco
+
+        // Configurar el ActionListener para el botón "Volver"
+        backButton.addActionListener(e -> {
+            this.dispose();  // Cerrar la ventana actual
+        });
     }
 
-    // Métodos para acceder a la tabla y el botón
+    // Métodos para acceder a los botones y la tabla
     public JTable getProductsTable() {
         return productsTable;
     }
@@ -66,15 +78,14 @@ public class ManageProductsView extends JFrame {
     }
     
     public void loadProducts(Object[][] productsData) {
-    System.out.println("🔹 Cargando productos en la tabla...");
+        System.out.println("🔹 Cargando productos en la tabla...");
 
-    DefaultTableModel model = (DefaultTableModel) productsTable.getModel();
-    model.setRowCount(0); // Limpiar la tabla antes de agregar datos nuevos
+        DefaultTableModel model = (DefaultTableModel) productsTable.getModel();
+        model.setRowCount(0); // Limpiar la tabla antes de agregar datos nuevos
 
-    for (Object[] productRow : productsData) {
-        System.out.println("🔹 Agregando producto: " + Arrays.toString(productRow));
-        model.addRow(productRow); // Agregar cada fila de productos al modelo de la tabla
+        for (Object[] productRow : productsData) {
+            System.out.println("🔹 Agregando producto: " + Arrays.toString(productRow));
+            model.addRow(productRow); // Agregar cada fila de productos al modelo de la tabla
+        }
     }
-}
-
 }

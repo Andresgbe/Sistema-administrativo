@@ -16,39 +16,50 @@ import java.util.Arrays;
 public class ManageUsersView extends JFrame {
     private JTable usersTable;
     private DefaultTableModel tableModel;
-    private JButton addButton;
-    private JButton editButton;
-    private JButton deleteButton;
+    private JButton addButton, editButton, deleteButton, backButton;
     
     public ManageUsersView() {
-        setTitle("Gestión de Usuarios");
-        setSize(800, 600);
+        setTitle("Gestión de Productos");
+        setSize(800,600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
-
+        
         // Crear modelo de la tabla con las columnas
         String[] columnNames = {"ID", "Nombre", "Correo", "Teléfono", "Rol"};
         tableModel = new DefaultTableModel(columnNames, 0);
         usersTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(usersTable);
 
-        // Crear botones
-        addButton = new JButton("Agregar Usuario");
-        editButton = new JButton("Editar Usuario");
-        deleteButton = new JButton("Eliminar Usuario");
+        // Crear botón "Editar Producto", "Agregar Producto", "Eliminar Producto" y "Volver"
+        editButton = new JButton("Editar Producto");
+        addButton = new JButton("Agregar Producto"); 
+        deleteButton = new JButton("Eliminar Producto"); 
+        backButton = new JButton("Volver"); 
 
         // Diseño de la interfaz
-        JPanel panel = new JPanel(new BorderLayout());
+        JPanel panel = new JPanel(new BorderLayout());  // Usamos BorderLayout para organizar la ventana
         panel.add(scrollPane, BorderLayout.CENTER); // Tabla en el centro
 
-        JPanel buttonsPanel = new JPanel();
+        // Crear el panel para el botón "Volver" y agregarlo al BorderLayout.NORTH (parte superior)
+        JPanel topPanel = new JPanel(new FlowLayout(FlowLayout.LEFT)); // FlowLayout para alinear a la izquierda
+        topPanel.add(backButton);  // Agregar el botón "Volver"
+        panel.add(topPanel, BorderLayout.NORTH); // Colocar el panel de "Volver" en la parte superior
+
+        // Crear el panel de botones para "Agregar", "Editar" y "Eliminar", y agregarlo a BorderLayout.SOUTH (parte inferior)
+        JPanel buttonsPanel = new JPanel();  // Los demás botones en la parte inferior
         buttonsPanel.add(addButton);
         buttonsPanel.add(editButton);
         buttonsPanel.add(deleteButton);
-        panel.add(buttonsPanel, BorderLayout.SOUTH); // Botones en la parte inferior
+        panel.add(buttonsPanel, BorderLayout.SOUTH); // Colocar los botones en la parte inferior
 
-        add(panel);
+        add(panel);  // Agregar todo al marco
+
+        // Configurar el ActionListener para el botón "Volver"
+        backButton.addActionListener(e -> {
+            this.dispose();  // Cerrar la ventana actual
+        });
     }
+    
     // Métodos para acceder a los componentes
     public JTable getUsersTable(){
         return usersTable;
