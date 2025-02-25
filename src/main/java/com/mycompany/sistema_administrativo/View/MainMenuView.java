@@ -6,6 +6,7 @@ package com.mycompany.sistema_administrativo.View;
 
 import com.mycompany.sistema_administrativo.Controller.ManageUsersController;
 import com.mycompany.sistema_administrativo.Controller.ManageProductsController;
+import com.mycompany.sistema_administrativo.Controller.ManageSuppliersController;
 
 import javax.swing.*;
 import java.awt.*;
@@ -39,9 +40,11 @@ public class MainMenuView extends JFrame {
         // Botones de navegación
         JButton manageUsersButton = new JButton("Gestionar Usuarios");
         JButton manageProductsButton = new JButton("Gestionar Productos");
+        JButton manageSuppliersButton = new JButton("Gestionar Proveedores"); 
         JButton logoutButton = new JButton("Cerrar Sesión");
 
         panel.add(manageUsersButton);
+        panel.add(manageSuppliersButton);
         panel.add(manageProductsButton); // Botón para gestionar productos
         panel.add(Box.createRigidArea(new Dimension(0, 20)));
         panel.add(logoutButton);
@@ -75,6 +78,14 @@ public class MainMenuView extends JFrame {
             ManageProductsView manageProductsView = new ManageProductsView();
             new ManageProductsController(manageProductsView);
             manageProductsView.setVisible(true);
+        });
+        
+        // Integrar la vista para gestionar proveedores
+        manageSuppliersButton.addActionListener(e -> {
+            System.out.println("🔹 Botón Gestionar Proveedores presionado.");
+            ManageSuppliersView manageSuppliersView = new ManageSuppliersView();
+            new ManageSuppliersController(manageSuppliersView);
+            manageSuppliersView.setVisible(true);
         });
 
         // Acción para cerrar sesión
