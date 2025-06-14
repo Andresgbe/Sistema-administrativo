@@ -8,6 +8,7 @@ import com.mycompany.sistema_administrativo.Controller.ManageUsersController;
 import com.mycompany.sistema_administrativo.Controller.ManageProductsController;
 import com.mycompany.sistema_administrativo.Controller.ManageSuppliersController;
 import com.mycompany.sistema_administrativo.Controller.ManageClientsController;
+import com.mycompany.sistema_administrativo.Controller.ManageTransactionsController;
 
 import javax.swing.*;
 import java.awt.*;
@@ -43,12 +44,15 @@ public class MainMenuView extends JFrame {
         JButton manageProductsButton = new JButton("Gestionar Productos");
         JButton manageSuppliersButton = new JButton("Gestionar Proveedores"); 
         JButton manageClientsButton = new JButton("Gestionar Clientes");
+        JButton manageTransactionsButton = new JButton("Gestionar Transacciones");
         JButton logoutButton = new JButton("Cerrar Sesión");
 
         panel.add(manageUsersButton);
         panel.add(manageSuppliersButton);
-        panel.add(manageProductsButton); // Botón para gestionar productos
+        panel.add(manageProductsButton); 
         panel.add(manageClientsButton);
+        panel.add(manageTransactionsButton);
+        
         panel.add(Box.createRigidArea(new Dimension(0, 20)));
         panel.add(logoutButton);
 
@@ -98,7 +102,13 @@ public class MainMenuView extends JFrame {
             new ManageClientsController(manageClientsView);
             manageClientsView.setVisible(true);
         });
-
+        
+        manageTransactionsButton.addActionListener(e -> {
+            System.out.println("🔹 Botón Gestionar Transacciones presionado.");
+            ManageTransactionsView manageTransactionsView = new ManageTransactionsView();
+            new ManageTransactionsController(manageTransactionsView);
+            manageTransactionsView.setVisible(true);
+        });
 
         // Acción para cerrar sesión
         logoutButton.addActionListener(e -> {

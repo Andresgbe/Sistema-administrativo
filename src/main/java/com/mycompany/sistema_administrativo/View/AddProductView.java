@@ -10,9 +10,11 @@ package com.mycompany.sistema_administrativo.View;
  */
 import javax.swing.*;
 import java.awt.*;
+import java.util.List;
 
 public class AddProductView extends JDialog {
     private JTextField codeField, nameField, descriptionField, priceField, stockField;
+    private JComboBox<String> supplierComboBox;
     private JButton saveButton, cancelButton;
 
     public AddProductView(JFrame parent) {
@@ -40,6 +42,10 @@ public class AddProductView extends JDialog {
         add(new JLabel("Stock:"));
         stockField = new JTextField();
         add(stockField);
+        
+        add(new JLabel("Proveedor:"));
+        supplierComboBox = new JComboBox<>();
+        add(supplierComboBox);
 
         // Botones para guardar y cancelar
         saveButton = new JButton("Guardar");
@@ -55,7 +61,16 @@ public class AddProductView extends JDialog {
     public String getProductName() { return nameField.getText(); }
     public String getProductDescription() { return descriptionField.getText(); }
     public float getProductPrice() { return Float.parseFloat(priceField.getText()); }
-    public int getProductStock() { return Integer.parseInt(stockField.getText()); }
+    public int getProductStock() { return Integer.parseInt(stockField.getText()); }  
+    public String getSelectedSupplierId() {
+    return (String) supplierComboBox.getSelectedItem();
+}
+    public void setSupplierOptions(List<String> supplierIds) {
+        supplierComboBox.removeAllItems();
+        for (String id : supplierIds) {
+            supplierComboBox.addItem(id);
+        }
+    }
 
     public JButton getSaveButton() { return saveButton; }
     public JButton getCancelButton() { return cancelButton; }
