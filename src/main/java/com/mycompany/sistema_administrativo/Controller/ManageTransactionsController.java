@@ -7,6 +7,7 @@ import com.mycompany.sistema_administrativo.Model.Transactions;
 import com.mycompany.sistema_administrativo.Database.DatabaseConnection;
 import com.mycompany.sistema_administrativo.View.ManageTransactionsView;
 import com.mycompany.sistema_administrativo.View.AddTransactionView;
+import com.mycompany.sistema_administrativo.View.EditTransactionView;
 
 
 /**
@@ -16,62 +17,63 @@ import com.mycompany.sistema_administrativo.View.AddTransactionView;
 
 import javax.swing.*;
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ManageTransactionsController {
     private ManageTransactionsView manageTransactionsView;
-    private List<Transactions> transactions = new ArrayList<>();
 
     public ManageTransactionsController(ManageTransactionsView manageTransactionsView) {
         this.manageTransactionsView = manageTransactionsView;
         configureListeners();
         loadTransactionsFromDatabase();
-        updateTransactionsTable();
     }
 
     private void configureListeners() {
         manageTransactionsView.getAddButton().addActionListener(e -> {
             AddTransactionView addView = new AddTransactionView(manageTransactionsView);
+            addView.setCustomerOptions(fetchCustomerItems().toArray());
 
-            // Listeners para actualizar el monto automáticamente
-            addView.productCodeField.addFocusListener(new java.awt.event.FocusAdapter() {
-                @Override
+            addView.getProductCodeField().addFocusListener(new java.awt.event.FocusAdapter() {
                 public void focusLost(java.awt.event.FocusEvent e) {
                     updateTotalAmount(addView);
                 }
             });
 
-            addView.quantityField.addFocusListener(new java.awt.event.FocusAdapter() {
-                @Override
+            addView.getQuantityField().addFocusListener(new java.awt.event.FocusAdapter() {
                 public void focusLost(java.awt.event.FocusEvent e) {
                     updateTotalAmount(addView);
                 }
             });
 
-            // Cargar clientes
-            addView.setCustomerOptions(fetchCustomerItems());
-
-
-            // Guardar
             addView.getSaveButton().addActionListener(event -> {
                 try {
-                    int customerID = Integer.parseInt(addView.getSelectedCustomer());
-                    int productID = getProductIdByCode(addView.getProductCode());
+                    ClienteComboItem selectedItem = (ClienteComboItem) addView.getSelectedCustomerItem();
+                    int customerID = selectedItem.getId();
+                    String transactionType = addView.getTransactionType();
+                    String productCode = addView.getProductCode();
+                    int quantity = addView.getQuantity();
+                    float totalAmount = addView.getTotalAmount();
+                    String transactionDate = new java.sql.Date(System.currentTimeMillis()).toString();
+                    int productID = getProductIdByCode(productCode);
+                    int stockActual = getProductStock(productID);
+                    
                     if (productID == -1) {
-                        JOptionPane.showMessageDialog(manageTransactionsView, "Producto no encontrado con ese código.", "Error", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(addView, "Código inválido: el producto no existe.", "Error", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
 
-                    String type = addView.getTransactionType();
-                    int quantity = addView.getQuantity();
-                    String date = java.time.LocalDate.now().toString();
-                    float amount = addView.getTotalAmount();
+                    if (transactionType.equalsIgnoreCase("venta") && quantity > stockActual) {
+                        JOptionPane.showMessageDialog(addView, "No hay suficiente stock disponible.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
 
-                    Transactions newTransaction = new Transactions(customerID, type, productID, quantity, date, amount);
-                    addTransactionToDatabase(newTransaction);
+                    Transactions tx = new Transactions(customerID, transactionType, productID, quantity, transactionDate, totalAmount);
+                    addTransactionToDatabase(tx);
                     addView.dispose();
+
                 } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(manageTransactionsView, "Error al guardar: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(addView, "Error al guardar transacción: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
             });
 
@@ -90,66 +92,111 @@ public class ManageTransactionsController {
         });
 
         manageTransactionsView.getEditButton().addActionListener(e -> {
-            JOptionPane.showMessageDialog(manageTransactionsView, "Funcionalidad de edición en desarrollo.", "Info", JOptionPane.INFORMATION_MESSAGE);
+            int selectedRow = manageTransactionsView.getTransactionsTable().getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(manageTransactionsView, "Selecciona una transacción para editar.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            String id = manageTransactionsView.getTransactionsTable().getValueAt(selectedRow, 0).toString();
+            String clienteNombre = manageTransactionsView.getTransactionsTable().getValueAt(selectedRow, 1).toString();
+            String tipo = manageTransactionsView.getTransactionsTable().getValueAt(selectedRow, 2).toString();
+            String productoNombre = manageTransactionsView.getTransactionsTable().getValueAt(selectedRow, 3).toString();
+            int cantidadOriginal = Integer.parseInt(manageTransactionsView.getTransactionsTable().getValueAt(selectedRow, 4).toString());
+            String fecha = manageTransactionsView.getTransactionsTable().getValueAt(selectedRow, 5).toString();
+            float totalOriginal = Float.parseFloat(manageTransactionsView.getTransactionsTable().getValueAt(selectedRow, 6).toString());
+
+            ClienteComboItem[] clientes = fetchCustomerItems().toArray(new ClienteComboItem[0]);
+            int productID = getProductIdByName(productoNombre);
+            String productCode = getProductCodeById(productID);
+
+            EditTransactionView editView = new EditTransactionView(manageTransactionsView);
+            editView.setCustomerOptions(clientes);
+            editView.setSelectedCustomer(findClienteItemByName(clientes, clienteNombre));
+            editView.setTransactionType(tipo);
+            editView.setProductCode(productCode);
+            editView.setQuantity(cantidadOriginal);
+            editView.setTotalAmount(totalOriginal);
+
+            editView.getProductCodeField().addFocusListener(new java.awt.event.FocusAdapter() {
+                public void focusLost(java.awt.event.FocusEvent e) {
+                    updateTotalAmount(editView);
+                }
+            });
+
+            editView.getQuantityField().addFocusListener(new java.awt.event.FocusAdapter() {
+                public void focusLost(java.awt.event.FocusEvent e) {
+                    updateTotalAmount(editView);
+                }
+            });
+
+            editView.getSaveButton().addActionListener(event -> {
+                try {
+                    int nuevoClienteID = ((ClienteComboItem) editView.getSelectedCustomerItem()).getId();
+                    String nuevoTipo = editView.getTransactionType();
+                    int nuevaCantidad = editView.getQuantity();
+                    float nuevoTotal = editView.getTotalAmount();
+                    int nuevoProductID = getProductIdByCode(editView.getProductCode());
+
+                    int stockActual = getProductStock(nuevoProductID);
+                    if (nuevoTipo.equalsIgnoreCase("venta") && nuevaCantidad > stockActual) {
+                        JOptionPane.showMessageDialog(editView, "No hay suficiente stock disponible.", "Error", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+
+                    updateTransactionInDatabase(id, nuevoClienteID, nuevoTipo, nuevoProductID, nuevaCantidad, fecha, nuevoTotal);
+
+                    int diferencia = nuevaCantidad - cantidadOriginal;
+                    if (diferencia != 0 || !nuevoTipo.equalsIgnoreCase(tipo)) {
+                        if (tipo.equalsIgnoreCase("venta")) updateProductStock(productID, cantidadOriginal);
+                        if (tipo.equalsIgnoreCase("compra")) updateProductStock(productID, -cantidadOriginal);
+                        if (nuevoTipo.equalsIgnoreCase("venta")) updateProductStock(nuevoProductID, -nuevaCantidad);
+                        if (nuevoTipo.equalsIgnoreCase("compra")) updateProductStock(nuevoProductID, nuevaCantidad);
+                    }
+
+                    editView.dispose();
+                    loadTransactionsFromDatabase();
+
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(editView, "Error al editar transacción: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            });
+
+            editView.getCancelButton().addActionListener(event -> editView.dispose());
+            editView.setVisible(true);
         });
     }
 
     private void loadTransactionsFromDatabase() {
-        System.out.println("🔹 Cargando transacciones desde la base de datos...");
-        String query = "SELECT * FROM transactions";
+        String query = "SELECT t.id, c.name AS cliente_nombre, p.name AS producto_nombre, " +
+                       "t.transactionType, t.quantity, t.transactionDate, t.totalAmount " +
+                       "FROM transactions t " +
+                       "JOIN clientes c ON t.customerID = c.id " +
+                       "JOIN productos p ON t.productID = p.id";
+
         try (Connection connection = DatabaseConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(query);
              ResultSet resultSet = statement.executeQuery()) {
 
-            transactions.clear();
             List<Object[]> dataList = new ArrayList<>();
-
             while (resultSet.next()) {
-                Transactions tx = new Transactions(
-                        resultSet.getString("id"),
-                        resultSet.getInt("customerID"),
-                        resultSet.getString("transactionType"),
-                        resultSet.getInt("productID"),
-                        resultSet.getInt("quantity"),
-                        resultSet.getString("transactionDate"),
-                        resultSet.getFloat("totalAmount")
-                );
-                transactions.add(tx);
-
                 Object[] row = {
-                    tx.getId(),
-                    tx.getCustomerID(),
-                    tx.getTransactionType(),
-                    tx.getProductID(),
-                    tx.getQuantity(),
-                    tx.getTransactionDate(),
-                    tx.getTotalAmount()
+                    resultSet.getInt("id"),
+                    resultSet.getString("cliente_nombre"),
+                    resultSet.getString("transactionType"),
+                    resultSet.getString("producto_nombre"),
+                    resultSet.getInt("quantity"),
+                    resultSet.getString("transactionDate"),
+                    resultSet.getFloat("totalAmount")
                 };
                 dataList.add(row);
             }
-
             manageTransactionsView.loadTransactions(dataList.toArray(new Object[0][0]));
-            System.out.println("🔹 Total transacciones cargadas: " + dataList.size());
 
         } catch (SQLException e) {
             e.printStackTrace();
             JOptionPane.showMessageDialog(null, "Error al cargar las transacciones.", "Error", JOptionPane.ERROR_MESSAGE);
         }
-    }
-
-    private void updateTransactionsTable() {
-        Object[][] data = new Object[transactions.size()][7];
-        for (int i = 0; i < transactions.size(); i++) {
-            Transactions tx = transactions.get(i);
-            data[i][0] = tx.getId();
-            data[i][1] = tx.getCustomerID();
-            data[i][2] = tx.getTransactionType();
-            data[i][3] = tx.getProductID();
-            data[i][4] = tx.getQuantity();
-            data[i][5] = tx.getTransactionDate();
-            data[i][6] = tx.getTotalAmount();
-        }
-        manageTransactionsView.loadTransactions(data);
     }
 
     private void addTransactionToDatabase(Transactions tx) {
@@ -166,36 +213,56 @@ public class ManageTransactionsController {
 
             int rowsInserted = statement.executeUpdate();
             if (rowsInserted > 0) {
-                JOptionPane.showMessageDialog(null, "Transacción registrada correctamente.");
+                if (tx.getTransactionType().equalsIgnoreCase("venta")) {
+                    updateProductStock(tx.getProductID(), -tx.getQuantity());
+                } else if (tx.getTransactionType().equalsIgnoreCase("compra")) {
+                    updateProductStock(tx.getProductID(), tx.getQuantity());
+                }
                 loadTransactionsFromDatabase();
-            } else {
-                JOptionPane.showMessageDialog(null, "No se pudo registrar la transacción.", "Error", JOptionPane.ERROR_MESSAGE);
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Error en la base de datos al registrar transacción.", "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
 
     private void deleteTransactionFromDatabase(String id) {
         String query = "DELETE FROM transactions WHERE id = ?";
-        try (Connection connection = DatabaseConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(query)) {
-
-            statement.setString(1, id);
-
-            int rowsDeleted = statement.executeUpdate();
-            if (rowsDeleted > 0) {
-                JOptionPane.showMessageDialog(null, "Transacción eliminada exitosamente.");
-                loadTransactionsFromDatabase();
-            } else {
-                JOptionPane.showMessageDialog(null, "No se pudo eliminar la transacción.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, id);
+            stmt.executeUpdate();
+            loadTransactionsFromDatabase();
         } catch (SQLException e) {
             e.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Error al eliminar transacción.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void updateTransactionInDatabase(String id, int customerID, String type, int productID, int quantity, String date, float totalAmount) {
+        String query = "UPDATE transactions SET customerID = ?, transactionType = ?, productID = ?, quantity = ?, transactionDate = ?, totalAmount = ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, customerID);
+            stmt.setString(2, type);
+            stmt.setInt(3, productID);
+            stmt.setInt(4, quantity);
+            stmt.setString(5, date);
+            stmt.setFloat(6, totalAmount);
+            stmt.setString(7, id);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateProductStock(int productID, int variation) {
+        String query = "UPDATE productos SET stock = stock + ? WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, variation);
+            stmt.setInt(2, productID);
+            stmt.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -216,6 +283,15 @@ public class ManageTransactionsController {
         return list;
     }
 
+    private ClienteComboItem findClienteItemByName(ClienteComboItem[] lista, String nombre) {
+        for (ClienteComboItem c : lista) {
+            if (c.toString().equalsIgnoreCase(nombre)) {
+                return c;
+            }
+        }
+        return null;
+    }
+
     private int getProductIdByCode(String code) {
         String query = "SELECT id FROM productos WHERE code = ?";
         try (Connection conn = DatabaseConnection.getConnection();
@@ -228,7 +304,74 @@ public class ManageTransactionsController {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return -1; // No encontrado
+        return -1;
+    }
+
+    private int getProductIdByName(String name) {
+        String query = "SELECT id FROM productos WHERE name = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setString(1, name);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("id");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
+    }
+
+    private String getProductCodeById(int productID) {
+        String query = "SELECT code FROM productos WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, productID);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getString("code");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return "";
+    }
+
+    private int getProductStock(int productID) {
+        String query = "SELECT stock FROM productos WHERE id = ?";
+        try (Connection conn = DatabaseConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(query)) {
+            stmt.setInt(1, productID);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("stock");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return 0;
+    }
+
+    private void updateTotalAmount(AddTransactionView view) {
+        try {
+            String productCode = view.getProductCode();
+            int quantity = view.getQuantity();
+            float price = getProductPriceByCode(productCode);
+            view.setTotalAmount(quantity * price);
+        } catch (Exception e) {
+            view.setTotalAmount(0);
+        }
+    }
+
+    private void updateTotalAmount(EditTransactionView view) {
+        try {
+            String productCode = view.getProductCode();
+            int quantity = view.getQuantity();
+            float price = getProductPriceByCode(productCode);
+            view.setTotalAmount(quantity * price);
+        } catch (Exception e) {
+            view.setTotalAmount(0);
+        }
     }
 
     private float getProductPriceByCode(String code) {
@@ -243,42 +386,24 @@ public class ManageTransactionsController {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        return -1f; // No encontrado
+        return 0;
     }
 
-    private void updateTotalAmount(AddTransactionView view) {
-        try {
-            String code = view.getProductCode();
-            int quantity = view.getQuantity();
-            float price = getProductPriceByCode(code);
-            if (price > 0) {
-                float total = price * quantity;
-                view.setTotalAmount(total);
-            } else {
-                view.setTotalAmount(0);
-            }
-        } catch (Exception e) {
-            view.setTotalAmount(0);
+    public static class ClienteComboItem {
+        private int id;
+        private String nombre;
+
+        public ClienteComboItem(int id, String nombre) {
+            this.id = id;
+            this.nombre = nombre;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public String toString() {
+            return nombre;
         }
     }
-    
-    private static class ClienteComboItem {
-    private int id;
-    private String nombre;
-
-    public ClienteComboItem(int id, String nombre) {
-        this.id = id;
-        this.nombre = nombre;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    @Override
-    public String toString() {
-        return nombre;
-    }
-}
-
 }
