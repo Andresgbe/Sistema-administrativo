@@ -75,6 +75,14 @@ import java.util.List;
                     JOptionPane.showMessageDialog(manageSuppliersView, "Todos los campos son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
+                
+                if (isDuplicateSupplier(email, phone, rif)) {
+                JOptionPane.showMessageDialog(manageSuppliersView, 
+                    "Ya existe un proveedor con el mismo correo, teléfono o RIF.", 
+                    "Duplicado detectado", 
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
 
                 supplierToEdit.setName(name);
                 supplierToEdit.setPhone(phone);
@@ -107,6 +115,14 @@ import java.util.List;
                     JOptionPane.showMessageDialog(manageSuppliersView, "Todos los campos son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
+                
+                if (isDuplicateSupplier(email, phone, rif)) {
+                JOptionPane.showMessageDialog(manageSuppliersView, 
+                    "Ya existe un proveedor con el mismo correo, teléfono o RIF.", 
+                    "Duplicado detectado", 
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
 
                 // Crear el objeto proveedor
                 Suppliers newSupplier = new Suppliers(name, phone, email, address, rif);
@@ -249,25 +265,72 @@ try (Connection connection = DatabaseConnection.getConnection();
     }
 }
 
-   private void deleteSupplierFromDatabase(String supplierId) {
-    String query = "DELETE FROM suppliers WHERE id = ?";
+    private void deleteSupplierFromDatabase(String supplierId) {
+    String checkQuery = "SELECT COUNT(*) FROM productos WHERE supplier_id = ?";
+    String deleteQuery = "DELETE FROM suppliers WHERE id = ?";
+
     try (Connection connection = DatabaseConnection.getConnection();
-         PreparedStatement statement = connection.prepareStatement(query)) {
+         PreparedStatement checkStmt = connection.prepareStatement(checkQuery)) {
 
-        statement.setString(1, supplierId);
+        checkStmt.setString(1, supplierId);
+        ResultSet rs = checkStmt.executeQuery();
+        rs.next();
+        int productCount = rs.getInt(1);
 
-        int rowsDeleted = statement.executeUpdate();
-        if (rowsDeleted > 0) {
-            JOptionPane.showMessageDialog(null, "Proveedor eliminado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-            loadSuppliersFromDatabase(); // Recargar los proveedores
-        } else {
-            JOptionPane.showMessageDialog(null, "No se pudo eliminar el proveedor.", "Error", JOptionPane.ERROR_MESSAGE);
+        if (productCount > 0) {
+            int confirm = JOptionPane.showConfirmDialog(null,
+                "Este proveedor tiene productos asociados.\n" +
+                "Si lo elimina, no se podrá asociar más productos con este proveedor.\n" +
+                "¿Está seguro que desea continuar?",
+                "Confirmar eliminación",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE);
+
+            if (confirm != JOptionPane.YES_OPTION) {
+                return;
+            }
         }
+
+        try (PreparedStatement deleteStmt = connection.prepareStatement(deleteQuery)) {
+            deleteStmt.setString(1, supplierId);
+            int rowsDeleted = deleteStmt.executeUpdate();
+            if (rowsDeleted > 0) {
+                JOptionPane.showMessageDialog(null, "Proveedor eliminado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                loadSuppliersFromDatabase(); // Recargar proveedores
+            } else {
+                JOptionPane.showMessageDialog(null, "No se pudo eliminar el proveedor.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+
     } catch (SQLException e) {
         e.printStackTrace();
         JOptionPane.showMessageDialog(null, "Error al eliminar el proveedor en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
     }
 }
+
+
+    private boolean isDuplicateSupplier(String email, String phone, int rif) {
+        String query = "SELECT COUNT(*) FROM suppliers WHERE email = ? OR phone = ? OR rif = ?";
+
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setString(1, email);
+            statement.setString(2, phone);
+            statement.setInt(3, rif);
+
+            ResultSet rs = statement.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error al validar duplicados.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        return false;
+    }
 
     
     }

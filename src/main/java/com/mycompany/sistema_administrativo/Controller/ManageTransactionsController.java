@@ -61,24 +61,30 @@ public class ManageTransactionsController {
                     if (productID == -1) {
                         JOptionPane.showMessageDialog(addView, "Código inválido: el producto no existe.", "Error", JOptionPane.ERROR_MESSAGE);
                         return;
-                    }
+                    }            
 
                     if (transactionType.equalsIgnoreCase("venta") && quantity > stockActual) {
                         JOptionPane.showMessageDialog(addView, "No hay suficiente stock disponible.", "Error", JOptionPane.ERROR_MESSAGE);
                         return;
                     }
+                    
+                    if (transactionType.equalsIgnoreCase("venta") && stockActual == quantity){
+                        JOptionPane.showMessageDialog(addView, "El stock del producto se agoto con esta venta");
+                    }
 
                     Transactions tx = new Transactions(customerID, transactionType, productID, quantity, transactionDate, totalAmount);
                     addTransactionToDatabase(tx);
                     addView.dispose();
-
+                    
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(addView, "Error al guardar transacción: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
                 }
+
             });
 
             addView.getCancelButton().addActionListener(event -> addView.dispose());
             addView.setVisible(true);
+            
         });
 
         manageTransactionsView.getDeleteButton().addActionListener(e -> {
@@ -152,6 +158,15 @@ public class ManageTransactionsController {
                         if (tipo.equalsIgnoreCase("compra")) updateProductStock(productID, -cantidadOriginal);
                         if (nuevoTipo.equalsIgnoreCase("venta")) updateProductStock(nuevoProductID, -nuevaCantidad);
                         if (nuevoTipo.equalsIgnoreCase("compra")) updateProductStock(nuevoProductID, nuevaCantidad);
+                        
+                        int stockFinal = getProductStock(nuevoProductID);
+                        if (nuevoTipo.equalsIgnoreCase("venta") && stockFinal == 0) {
+                            JOptionPane.showMessageDialog(editView,
+                                "⚠️ El producto se ha quedado sin stock luego de esta modificación.",
+                                "Producto agotado",
+                                JOptionPane.WARNING_MESSAGE);
+                        }
+
                     }
 
                     editView.dispose();

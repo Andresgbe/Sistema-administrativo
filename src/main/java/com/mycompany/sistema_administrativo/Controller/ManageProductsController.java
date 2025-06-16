@@ -98,6 +98,15 @@ public class ManageProductsController {
                 productToEdit.setStock(stock);
                 productToEdit.setSupplierId(supplierId);
                 
+            //  ---- NOTIFICA AL USUARIO QUE EL STOCK ES 0    
+                if (stock == 0) {
+                JOptionPane.showMessageDialog(manageProductsView,
+                    "El stock de este producto es 0ó",
+                    "Stock agotado",
+                    JOptionPane.WARNING_MESSAGE);
+            }
+
+                
                 updateProductInDatabase(productToEdit);
                 editProductView.dispose();
             });
