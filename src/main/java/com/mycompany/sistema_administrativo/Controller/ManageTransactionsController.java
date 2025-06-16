@@ -3,11 +3,13 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.mycompany.sistema_administrativo.Controller;
+import Utils.InvoiceGenerator;
 import com.mycompany.sistema_administrativo.Model.Transactions;
 import com.mycompany.sistema_administrativo.Database.DatabaseConnection;
 import com.mycompany.sistema_administrativo.View.ManageTransactionsView;
 import com.mycompany.sistema_administrativo.View.AddTransactionView;
 import com.mycompany.sistema_administrativo.View.EditTransactionView;
+
 
 
 /**
@@ -180,7 +182,25 @@ public class ManageTransactionsController {
             editView.getCancelButton().addActionListener(event -> editView.dispose());
             editView.setVisible(true);
         });
+        
+        manageTransactionsView.getGenerateInvoiceButton().addActionListener(e -> {
+            int selectedRow = manageTransactionsView.getTransactionsTable().getSelectedRow();
+            if (selectedRow == -1) {
+                JOptionPane.showMessageDialog(manageTransactionsView, "Selecciona una transacción para generar la factura.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+        String transactionId = manageTransactionsView.getTransactionsTable().getValueAt(selectedRow, 0).toString(); // ID
+        String clientName = manageTransactionsView.getTransactionsTable().getValueAt(selectedRow, 1).toString();   // Cliente
+        String productName = manageTransactionsView.getTransactionsTable().getValueAt(selectedRow, 3).toString();  // Producto
+        String quantity = manageTransactionsView.getTransactionsTable().getValueAt(selectedRow, 4).toString();     // Cantidad
+        String total = manageTransactionsView.getTransactionsTable().getValueAt(selectedRow, 6).toString();        // Monto Total
+
+
+            InvoiceGenerator.generateInvoice(transactionId, productName, clientName, quantity, total);
+        });
     }
+
 
     private void loadTransactionsFromDatabase() {
         String query = "SELECT t.id, c.name AS cliente_nombre, p.name AS producto_nombre, " +

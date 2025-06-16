@@ -17,6 +17,8 @@ public class ManageTransactionsView extends JFrame {
     private JTable transactionsTable;
     private DefaultTableModel tableModel;
     private JButton editButton, addButton, deleteButton, backButton;
+    private JButton generateInvoiceButton; 
+
 
     public ManageTransactionsView() {
         setTitle("Gestión de Transacciones");
@@ -37,6 +39,9 @@ public class ManageTransactionsView extends JFrame {
         editButton = new JButton("Editar Transacción");
         addButton = new JButton("Agregar Transacción");
         deleteButton = new JButton("Eliminar Transacción");
+        generateInvoiceButton = new JButton("Generar Factura");
+        
+
         backButton = new JButton("Volver");
 
         // Layout general
@@ -53,6 +58,7 @@ public class ManageTransactionsView extends JFrame {
         bottomPanel.add(addButton);
         bottomPanel.add(editButton);
         bottomPanel.add(deleteButton);
+        bottomPanel.add(generateInvoiceButton);
         panel.add(bottomPanel, BorderLayout.SOUTH);
 
         add(panel);
@@ -77,6 +83,11 @@ public class ManageTransactionsView extends JFrame {
     public JButton getDeleteButton() {
         return deleteButton;
     }
+    
+    public JButton getGenerateInvoiceButton() {
+    return generateInvoiceButton;
+    }
+
 
     // Método para cargar los datos
     public void loadTransactions(Object[][] data) {
