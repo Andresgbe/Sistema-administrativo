@@ -16,28 +16,28 @@ public class Products {
     private String description;
     private float price;
     private int stock;  
-   // private String supplierId;
+    private String supplierId;
 
     
     // Constructor que se usa cuando se recupera productos en la base de datos
-    public Products(String id, String code, String name, String description, float price, int stock/*, String supplierId*/){
+    public Products(String id, String code, String name, String description, float price, int stock, String supplierId){
         this.id = id;
         this.code = code;
         this.name = name;
         this.description = description;
         this.price = price;
         this.stock = stock;
-       // this.supplierId = supplierId;
+        this.supplierId = supplierId;
     }
     
     //Constructor para agregar un nuevo producto
-    public Products(String code, String name, String description, float price, int stock/*,String supplierId*/){
+    public Products(String code, String name, String description, float price, int stock, String supplierId){
         this.code = code;
         this.name = name;
         this.description = description;
         this.price = price;
         this.stock = stock; 
-      //  this.supplierId = supplierId;
+        this.supplierId = supplierId;
     }
 
     public String getId() {
@@ -84,18 +84,14 @@ public class Products {
         this.stock = stock;
     }
 
-    /*public String getSupplierId() {
+    public String getSupplierId() {
         return supplierId;
     }
 
     public void setSupplierId(String supplierId) {
         this.supplierId = supplierId;
-    }*/
-    
-
-    
-    
-    
+    }
+   
     
     // Sobreescribe el metodo toString() para mostrar la informacion de una forma mas legible
     @Override

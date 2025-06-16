@@ -4,25 +4,22 @@
  */
 package com.mycompany.sistema_administrativo.View;
 
-/**
- *
- * @author andresgbe
- */
+import com.mycompany.sistema_administrativo.Model.Suppliers;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
 
 public class AddProductView extends JDialog {
+
     private JTextField codeField, nameField, descriptionField, priceField, stockField;
-    private JComboBox<String> supplierComboBox;
+    private JComboBox<Suppliers> supplierComboBox;
     private JButton saveButton, cancelButton;
 
     public AddProductView(JFrame parent) {
         super(parent, "Agregar Producto", true);
-        setSize(350, 250);
-        setLayout(new GridLayout(6, 2, 10, 10));
+        setSize(350, 300);
+        setLayout(new GridLayout(7, 2, 10, 10));
 
-        // Campos de entrada
         add(new JLabel("Código:"));
         codeField = new JTextField();
         add(codeField);
@@ -42,12 +39,11 @@ public class AddProductView extends JDialog {
         add(new JLabel("Stock:"));
         stockField = new JTextField();
         add(stockField);
-        
+
         add(new JLabel("Proveedor:"));
         supplierComboBox = new JComboBox<>();
         add(supplierComboBox);
 
-        // Botones para guardar y cancelar
         saveButton = new JButton("Guardar");
         cancelButton = new JButton("Cancelar");
         add(saveButton);
@@ -56,22 +52,25 @@ public class AddProductView extends JDialog {
         setLocationRelativeTo(parent);
     }
 
-    // Métodos para obtener los valores ingresados
     public String getProductCode() { return codeField.getText(); }
     public String getProductName() { return nameField.getText(); }
     public String getProductDescription() { return descriptionField.getText(); }
     public float getProductPrice() { return Float.parseFloat(priceField.getText()); }
-    public int getProductStock() { return Integer.parseInt(stockField.getText()); }  
-    public String getSelectedSupplierId() {
-    return (String) supplierComboBox.getSelectedItem();
-}
-    public void setSupplierOptions(List<String> supplierIds) {
+    public int getProductStock() { return Integer.parseInt(stockField.getText()); }
+
+    public void setSupplierOptions(List<Suppliers> suppliers) {
         supplierComboBox.removeAllItems();
-        for (String id : supplierIds) {
-            supplierComboBox.addItem(id);
+        for (Suppliers supplier : suppliers) {
+            supplierComboBox.addItem(supplier);
         }
+    }
+
+    public String getSelectedSupplierId() {
+        Suppliers selected = (Suppliers) supplierComboBox.getSelectedItem();
+        return selected != null ? selected.getId() : null;
     }
 
     public JButton getSaveButton() { return saveButton; }
     public JButton getCancelButton() { return cancelButton; }
+    
 }

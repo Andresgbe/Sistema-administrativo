@@ -17,6 +17,8 @@ public class ManageProductsView extends JFrame {
     private JTable productsTable;
     private DefaultTableModel tableModel;
     private JButton editButton, addButton, deleteButton, backButton;
+    private JComboBox<String> supplierComboBox;
+
 
     public ManageProductsView(){
         setTitle("Gestión de Productos");
@@ -25,7 +27,7 @@ public class ManageProductsView extends JFrame {
         setLocationRelativeTo(null);
         
         // Crear modelo de la tabla con las columnas de productos
-        String[] columnNames = {"ID", "Código", "Nombre", "Descripción", "Precio", "Stock"};
+        String[] columnNames = {"ID", "Código", "Nombre", "Descripción", "Precio", "Stock", "Proveedor"};
         tableModel = new DefaultTableModel(columnNames, 0);
         productsTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(productsTable);
@@ -88,4 +90,15 @@ public class ManageProductsView extends JFrame {
             model.addRow(productRow); // Agregar cada fila de productos al modelo de la tabla
         }
     }
+    
+    public void setSelectedSupplier(String supplierId) {
+    for (int i = 0; i < supplierComboBox.getItemCount(); i++) {
+        String item = supplierComboBox.getItemAt(i);
+        if (item.startsWith(supplierId + " -")) {
+            supplierComboBox.setSelectedIndex(i);
+            break;
+        }
+    }
+}
+
 }

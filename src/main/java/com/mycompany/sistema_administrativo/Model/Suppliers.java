@@ -82,15 +82,11 @@ public class Suppliers {
         this.rif = rif;
     }
     
-    // Sobreescribe el metodo toString() para mostrar la informacion de una forma mas legible
-    @Override
-    public String toString() {
-        return "Products{" +
-                "name='" + name + '\'' +
-                ", phone='" + phone + '\'' +
-                ", email='" + email + '\'' +
-                ", address=" + address +
-                ", rif=" + rif +
-                '}';
-    }
+   
+@Override
+public String toString() {
+    return name; // Esto hará que JComboBox solo muestre el nombre
+}
+
+
 }

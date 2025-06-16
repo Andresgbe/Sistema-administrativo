@@ -19,7 +19,7 @@ public class ManageSuppliersView extends JFrame{
     private JButton editButton, addButton, deleteButton, backButton;
     
     public ManageSuppliersView(){
-        setTitle("Gestión de Productos");
+        setTitle("Gestión de Proveedor");
         setSize(800,600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
@@ -30,9 +30,9 @@ public class ManageSuppliersView extends JFrame{
         JScrollPane scrollPane = new JScrollPane(suppliersTable);
         
         // Crear botón "Editar proveedor", "Agregar proveedor", "Eliminar proveedor" y "Volver"
-        editButton = new JButton("Editar Producto");
-        addButton = new JButton("Agregar Producto"); 
-        deleteButton = new JButton("Eliminar Producto"); 
+        editButton = new JButton("Editar Proveedor");
+        addButton = new JButton("Agregar proveedor"); 
+        deleteButton = new JButton("Eliminar Proveedor"); 
         backButton = new JButton("Volver"); 
         
         // Diseño de la interfaz
@@ -76,13 +76,13 @@ public class ManageSuppliersView extends JFrame{
     
     
     public void loadSuppliers(Object[][] suppliersData) {
-        System.out.println("🔹 Cargando productos en la tabla...");
+        System.out.println("🔹 Cargando proveedores en la tabla...");
 
         DefaultTableModel model = (DefaultTableModel) suppliersTable.getModel();
         model.setRowCount(0); // Limpiar la tabla antes de agregar datos nuevos
 
         for (Object[] supplierRow : suppliersData) {
-            System.out.println("🔹 Agregando producto: " + Arrays.toString(supplierRow));
+            System.out.println("🔹 Agregando proveedor: " + Arrays.toString(supplierRow));
             model.addRow(supplierRow); // Agregar cada fila de proveedor al modelo de la tabla
         }
     }
