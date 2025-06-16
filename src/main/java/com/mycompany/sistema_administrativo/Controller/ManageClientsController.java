@@ -59,6 +59,14 @@ public class ManageClientsController {
                 return;
             }
 
+            if (clientToEdit.getId().equals("1")) {
+                JOptionPane.showMessageDialog(manageClientsView,
+                    "Este cliente está protegido y no puede ser editado.",
+                    "Acción no permitida",
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
             // Crear y mostrar la ventana de edición
             EditClientView editClientView = new EditClientView(manageClientsView);
             editClientView.setClientName(clientToEdit.getName());
@@ -79,6 +87,13 @@ public class ManageClientsController {
                     return;
                 }
 
+            if (isDuplicateClient(identification, email, phone, clientToEdit.getId())) {
+                JOptionPane.showMessageDialog(manageClientsView, 
+                    "Ya existe otro cliente con la misma cédula, correo o teléfono.", 
+                    "Duplicado detectado", 
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
                 clientToEdit.setName(name);
                 clientToEdit.setIdentification(identification);
                 clientToEdit.setEmail(email);
@@ -110,6 +125,16 @@ public class ManageClientsController {
                     JOptionPane.showMessageDialog(manageClientsView, "Todos los campos son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
+                
+                // Validar duplicados excluyendo su propio ID
+            if (isDuplicateClient(identification, email, phone, null)) {
+                JOptionPane.showMessageDialog(manageClientsView, 
+                    "Ya existe un cliente con la misma cédula, correo o teléfono.", 
+                    "Duplicado detectado", 
+                    JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+
 
                 // Crear el objeto cliente
                 Clients newClient = new Clients(name, identification, email, address, phone);
@@ -246,26 +271,86 @@ public class ManageClientsController {
         }
     }
     
-    private void deleteClientFromDatabase(String clientId) {
-    String query = "DELETE FROM clientes WHERE id = ?";
-    
-    try (Connection connection = DatabaseConnection.getConnection();
-         PreparedStatement statement = connection.prepareStatement(query)) {
-
-        statement.setString(1, clientId);
-
-        int rowsDeleted = statement.executeUpdate();
-        if (rowsDeleted > 0) {
-            JOptionPane.showMessageDialog(null, "Cliente eliminado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-            loadClientsFromDatabase(); // Recargar la lista de clientes
-        } else {
-            JOptionPane.showMessageDialog(null, "No se pudo eliminar el cliente.", "Error", JOptionPane.ERROR_MESSAGE);
+private void deleteClientFromDatabase(String clientId) {
+            // Proteger cliente "Clínica"
+        if (clientId.equals("1")) {
+            JOptionPane.showMessageDialog(null,
+                "Este cliente está protegido y no puede ser eliminado.",
+                "Acción no permitida",
+                JOptionPane.WARNING_MESSAGE);
+            return;
         }
+
+    
+    String checkQuery = "SELECT COUNT(*) FROM transactions WHERE customerID = ?";
+    String deleteQuery = "DELETE FROM clientes WHERE id = ?";
+
+    try (Connection connection = DatabaseConnection.getConnection();
+         PreparedStatement checkStmt = connection.prepareStatement(checkQuery)) {
+
+        checkStmt.setString(1, clientId);
+        ResultSet rs = checkStmt.executeQuery();
+        rs.next();
+        int transactionCount = rs.getInt(1);
+
+        if (transactionCount > 0) {
+            JOptionPane.showMessageDialog(null,
+                "Este cliente tiene " + transactionCount + " transacciones registradas y no puede ser eliminado.",
+                "Eliminación no permitida",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        try (PreparedStatement deleteStmt = connection.prepareStatement(deleteQuery)) {
+            deleteStmt.setString(1, clientId);
+            int rowsDeleted = deleteStmt.executeUpdate();
+
+            if (rowsDeleted > 0) {
+                JOptionPane.showMessageDialog(null, "Cliente eliminado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                loadClientsFromDatabase(); // Recargar la lista de clientes
+            } else {
+                JOptionPane.showMessageDialog(null, "No se pudo eliminar el cliente.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+
     } catch (SQLException e) {
         e.printStackTrace();
         JOptionPane.showMessageDialog(null, "Error al eliminar el cliente en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
     }
 }
+
+    private boolean isDuplicateClient(String identification, String email, String phone, String excludedId) {
+        String query = "SELECT COUNT(*) FROM clientes WHERE (identification = ? OR email = ? OR phone = ?)";
+
+        // Si estamos editando, excluimos el propio cliente
+        if (excludedId != null) {
+            query += " AND id != ?";
+        }
+
+        try (Connection connection = DatabaseConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(query)) {
+
+            statement.setString(1, identification);
+            statement.setString(2, email);
+            statement.setString(3, phone);
+            if (excludedId != null) {
+                statement.setString(4, excludedId);
+            }
+
+            ResultSet rs = statement.executeQuery();
+            if (rs.next()) {
+                return rs.getInt(1) > 0;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error al validar duplicados.", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+
+        return false;
+    }
+
+
 
 }
 
