@@ -47,10 +47,6 @@ public AddUserView(JFrame parent, ManageUsersController controller) {
     passwordField = new JPasswordField();
     add(passwordField);
 
-    add(new JLabel("Rol:"));
-    roleField = new JTextField();
-    add(roleField);
-
     // Botón para agregar usuario
     addButton = new JButton("Agregar");
     cancelButton = new JButton("Cancelar");
@@ -59,6 +55,8 @@ public AddUserView(JFrame parent, ManageUsersController controller) {
 
     setLocationRelativeTo(parent);
     configureListeners();
+    
+    
 }
 
     private void configureListeners() {
@@ -71,7 +69,8 @@ public AddUserView(JFrame parent, ManageUsersController controller) {
             String email = emailField.getText();
             String phone = phoneField.getText();
             String password = new String(passwordField.getPassword());
-            String role = roleField.getText();
+            String role = "administrador"; // ← Valor fijo directamente
+
 
             // Validar que los campos no estén vacíos
             if (name.isEmpty() || email.isEmpty() || phone.isEmpty() || password.isEmpty() || role.isEmpty()) {
@@ -98,7 +97,11 @@ public AddUserView(JFrame parent, ManageUsersController controller) {
     public String getUserEmail() { return emailField.getText(); }
     public String getUserPhone() { return phoneField.getText(); }
     public String getUserPassword() { return new String(passwordField.getPassword()); }
-    public String getUserRole() { return roleField.getText(); }
+    public String getUserRole() {
+        return "administrador";  // ✅ Devuelve siempre el valor fijo
+    }
+
+
     
     public JButton getAddButton() {
     return addButton;

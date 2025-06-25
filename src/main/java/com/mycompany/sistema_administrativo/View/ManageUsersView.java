@@ -19,21 +19,21 @@ public class ManageUsersView extends JFrame {
     private JButton addButton, editButton, deleteButton, backButton;
     
     public ManageUsersView() {
-        setTitle("Gestión de Productos");
+        setTitle("Gestión de Usuarios");
         setSize(800,600);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         setLocationRelativeTo(null);
         
         // Crear modelo de la tabla con las columnas
-        String[] columnNames = {"ID", "Nombre", "Correo", "Teléfono", "Rol"};
+        String[] columnNames = {"ID", "Nombre", "Correo", "Teléfono"};
         tableModel = new DefaultTableModel(columnNames, 0);
         usersTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(usersTable);
 
-        // Crear botón "Editar Producto", "Agregar Producto", "Eliminar Producto" y "Volver"
-        editButton = new JButton("Editar Producto");
-        addButton = new JButton("Agregar Producto"); 
-        deleteButton = new JButton("Eliminar Producto"); 
+        // Crear botón "Editar Usuario", "Agregar Usuario", "Eliminar Usuario" y "Volver"
+        editButton = new JButton("Editar Usuario");
+        addButton = new JButton("Agregar Usuario"); 
+        deleteButton = new JButton("Eliminar Usuario"); 
         backButton = new JButton("Volver"); 
 
         // Diseño de la interfaz

@@ -10,110 +10,111 @@ import com.mycompany.sistema_administrativo.Controller.ManageSuppliersController
 import com.mycompany.sistema_administrativo.Controller.ManageClientsController;
 import com.mycompany.sistema_administrativo.Controller.ManageTransactionsController;
 
+import com.mycompany.sistema_administrativo.Controller.*;
 import javax.swing.*;
 import java.awt.*;
-
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 
-
-/**
- *
- * @author andresgbe
- */
 public class MainMenuView extends JFrame {
     private ManageUsersView manageUsersView = null;
 
     public MainMenuView(String userEmail, String userRole) {
         setTitle("Menú Principal");
-        setSize(400, 300);
+        setSize(420, 400);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Panel para mostrar el menú
+        // Fuente para todo
+        Font titleFont = new Font("Segoe UI", Font.BOLD, 16);
+        Font buttonFont = new Font("Segoe UI", Font.PLAIN, 14);
+
+        // Panel principal con padding
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
 
         // Mensaje de bienvenida
-        panel.add(new JLabel("Bienvenido: " + userEmail));
-        panel.add(new JLabel("Rol: " + userRole));
+        JLabel welcomeLabel = new JLabel("Bienvenido al sistema de la Clinica Santa Sofia ");
+        welcomeLabel.setFont(titleFont);
+        JLabel roleLabel = new JLabel("Rol: " + userRole);
+        roleLabel.setFont(new Font("Segoe UI", Font.ITALIC, 13));
+        panel.add(welcomeLabel);
+        panel.add(roleLabel);
         panel.add(Box.createRigidArea(new Dimension(0, 20)));
 
-        // Botones de navegación
-        JButton manageUsersButton = new JButton("Gestionar Usuarios");
-        JButton manageProductsButton = new JButton("Gestionar Productos");
-        JButton manageSuppliersButton = new JButton("Gestionar Proveedores"); 
-        JButton manageClientsButton = new JButton("Gestionar Clientes");
-        JButton manageTransactionsButton = new JButton("Gestionar Transacciones");
-        JButton logoutButton = new JButton("Cerrar Sesión");
+        // Botones
+        JButton manageUsersButton = createStyledButton("Gestionar Usuarios", buttonFont);
+        JButton manageSuppliersButton = createStyledButton("Gestionar Proveedores", buttonFont);
+        JButton manageProductsButton = createStyledButton("Gestionar Productos", buttonFont);
+        JButton manageClientsButton = createStyledButton("Gestionar Clientes", buttonFont);
+        JButton manageTransactionsButton = createStyledButton("Gestionar Transacciones", buttonFont);
+        JButton logoutButton = createStyledButton("Cerrar Sesión", buttonFont);
 
         panel.add(manageUsersButton);
+        panel.add(Box.createVerticalStrut(10));
         panel.add(manageSuppliersButton);
-        panel.add(manageProductsButton); 
+        panel.add(Box.createVerticalStrut(10));
+        panel.add(manageProductsButton);
+        panel.add(Box.createVerticalStrut(10));
         panel.add(manageClientsButton);
+        panel.add(Box.createVerticalStrut(10));
         panel.add(manageTransactionsButton);
-        
-        panel.add(Box.createRigidArea(new Dimension(0, 20)));
+        panel.add(Box.createVerticalStrut(20));
         panel.add(logoutButton);
 
         add(panel);
 
+        // Listeners
         manageUsersButton.addActionListener(e -> {
-            System.out.println("🔹 Botón Gestionar Usuarios presionado.");
-            // Verificar si ya hay una ventana abierta
             if (manageUsersView == null || !manageUsersView.isVisible()) {
                 manageUsersView = new ManageUsersView();
-                new ManageUsersController(manageUsersView);
+                new ManageUsersController(manageUsersView, userEmail);
                 manageUsersView.setVisible(true);
-
-                // Agregar un listener para detectar cuando se cierra
                 manageUsersView.addWindowListener(new WindowAdapter() {
                     @Override
                     public void windowClosing(WindowEvent e) {
-                        System.out.println("🔹 Ventana de gestión de usuarios cerrada.");
-                        manageUsersView = null; // Resetear la variable
+                        manageUsersView = null;
                     }
                 });
-            } else {
-                System.out.println("⚠️ Ya hay una ventana abierta.");
             }
         });
 
-        // Integrar la vista para gestionar productos
-        manageProductsButton.addActionListener(e -> {
-            System.out.println("🔹 Botón Gestionar Productos presionado.");
-            ManageProductsView manageProductsView = new ManageProductsView();
-            new ManageProductsController(manageProductsView);
-            manageProductsView.setVisible(true);
-        });
-        
-        // Integrar la vista para gestionar proveedores
         manageSuppliersButton.addActionListener(e -> {
-            System.out.println("🔹 Botón Gestionar Proveedores presionado.");
-            ManageSuppliersView manageSuppliersView = new ManageSuppliersView();
-            new ManageSuppliersController(manageSuppliersView);
-            manageSuppliersView.setVisible(true);
-        });
-        
-        // Integrar la vista para gestionar clientes
-        manageClientsButton.addActionListener(e -> {
-            System.out.println("🔹 Botón Gestionar Clientes presionado.");
-            ManageClientsView manageClientsView = new ManageClientsView();
-            new ManageClientsController(manageClientsView);
-            manageClientsView.setVisible(true);
-        });
-        
-        manageTransactionsButton.addActionListener(e -> {
-            System.out.println("🔹 Botón Gestionar Transacciones presionado.");
-            ManageTransactionsView manageTransactionsView = new ManageTransactionsView();
-            new ManageTransactionsController(manageTransactionsView);
-            manageTransactionsView.setVisible(true);
+            ManageSuppliersView view = new ManageSuppliersView();
+            new ManageSuppliersController(view);
+            view.setVisible(true);
         });
 
-        // Acción para cerrar sesión
-        logoutButton.addActionListener(e -> {
-            dispose(); // Cerrar menú principal
-            new LoginView().setVisible(true); // Regresar al login
+        manageProductsButton.addActionListener(e -> {
+            ManageProductsView view = new ManageProductsView();
+            new ManageProductsController(view);
+            view.setVisible(true);
         });
+
+        manageClientsButton.addActionListener(e -> {
+            ManageClientsView view = new ManageClientsView();
+            new ManageClientsController(view);
+            view.setVisible(true);
+        });
+
+        manageTransactionsButton.addActionListener(e -> {
+            ManageTransactionsView view = new ManageTransactionsView();
+            new ManageTransactionsController(view);
+            view.setVisible(true);
+        });
+
+        logoutButton.addActionListener(e -> {
+            dispose();
+            new LoginView().setVisible(true);
+        });
+    }
+
+    private JButton createStyledButton(String text, Font font) {
+        JButton button = new JButton(text);
+        button.setFont(font);
+        button.setAlignmentX(Component.CENTER_ALIGNMENT);
+        button.setMaximumSize(new Dimension(250, 35));
+        return button;
     }
 }

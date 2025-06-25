@@ -7,6 +7,8 @@ package com.mycompany.sistema_administrativo.Controller;
 import com.mycompany.sistema_administrativo.Database.DatabaseConnection;
 import com.mycompany.sistema_administrativo.View.LoginView;
 import com.mycompany.sistema_administrativo.View.MainMenuView;
+import com.mycompany.sistema_administrativo.View.NewPasswordView;
+import com.mycompany.sistema_administrativo.View.ResetEmailView;
 import org.mindrot.jbcrypt.BCrypt;
 
 import javax.swing.*;
@@ -34,11 +36,10 @@ public class LoginController {
     private void configureListeners() {
         loginView.getLoginButton().addActionListener(e -> handleLogin());
         loginView.getCancelButton().addActionListener(e -> handleCancel());
+        loginView.getResetPasswordButton().addActionListener(e -> handleReset());
     }
 
-private void handleLogin() {
-    System.out.println("🔹 Método handleLogin() ejecutándose...");
-
+    private void handleLogin() {
     String email = loginView.getEmail(); // Obtener correo ingresado
     String password = loginView.getPassword(); // Obtener contraseña ingresada
 
@@ -57,12 +58,8 @@ private void handleLogin() {
             String storedHashedPassword = resultSet.getString("password");
             String role = resultSet.getString("role");
 
-            System.out.println("🔹 Contraseña ingresada: " + password);
-            System.out.println("🔹 Contraseña en BD: " + storedHashedPassword);
-
             // Verificar la contraseña ingresada con la almacenada usando BCrypt
             boolean passwordMatches = BCrypt.checkpw(password, storedHashedPassword);
-            System.out.println("🔹 ¿Las contraseñas coinciden?: " + passwordMatches);
 
             if (passwordMatches) {
                 JOptionPane.showMessageDialog(loginView, "Inicio de sesión exitoso.\nBienvenido: " + email);
@@ -89,6 +86,75 @@ private void handleLogin() {
             loginView.dispose(); // Cerrar la ventana
         }
     }
+    
+    private void handleReset() {
+        ResetEmailView emailView = new ResetEmailView(loginView);
+
+        emailView.getValidateButton().addActionListener(ev -> {
+            String email = emailView.getEmail();
+            if (email == null || email.trim().isEmpty()) {
+                JOptionPane.showMessageDialog(emailView, "El correo no puede estar vacío.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            try (Connection conn = DatabaseConnection.getConnection();
+                 PreparedStatement stmt = conn.prepareStatement("SELECT id FROM usuarios WHERE email = ?")) {
+                stmt.setString(1, email);
+                ResultSet rs = stmt.executeQuery();
+
+                if (rs.next()) {
+                    emailView.dispose();
+
+                    // Mostrar nueva vista de contraseña
+                    NewPasswordView passwordView = new NewPasswordView(loginView);
+
+                    passwordView.getResetButton().addActionListener(resetEv -> {
+                        String newPassword = passwordView.getPassword();
+                        String confirmPassword = passwordView.getConfirmedPassword();
+
+                        if (newPassword.isEmpty() || confirmPassword.isEmpty()) {
+                            JOptionPane.showMessageDialog(passwordView, "Ambos campos son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+
+                        if (!newPassword.equals(confirmPassword)) {
+                            JOptionPane.showMessageDialog(passwordView, "Las contraseñas no coinciden.", "Error", JOptionPane.ERROR_MESSAGE);
+                            return;
+                        }
+
+                        String hashedPassword = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+
+                    try (PreparedStatement updateStmt = conn.prepareStatement("UPDATE usuarios SET password = ? WHERE email = ?")) {
+                        updateStmt.setString(1, hashedPassword);
+                        updateStmt.setString(2, email);
+                        updateStmt.executeUpdate();
+
+                        JOptionPane.showMessageDialog(passwordView, "Contraseña restablecida con éxito.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                        passwordView.dispose();
+                    } catch (SQLException ex) {
+                        ex.printStackTrace();
+                        JOptionPane.showMessageDialog(passwordView, "Error al actualizar la contraseña.", "Error", JOptionPane.ERROR_MESSAGE);
+                    }
+
+                    });
+
+                    passwordView.getCancelButton().addActionListener(resetEv -> passwordView.dispose());
+                    passwordView.setVisible(true);
+
+                } else {
+                    JOptionPane.showMessageDialog(emailView, "Correo no encontrado en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                JOptionPane.showMessageDialog(emailView, "Error al validar el correo.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        });
+
+        emailView.getCancelButton().addActionListener(ev -> emailView.dispose());
+        emailView.setVisible(true);
+    }
 }
+
 
     

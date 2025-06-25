@@ -36,15 +36,12 @@ import org.mindrot.jbcrypt.BCrypt;
 public class ManageUsersController {
     private ManageUsersView manageUsersView;
     private List<Users> users = new ArrayList<>();
+    private String loggedInUserEmail;
 
-public ManageUsersController(ManageUsersView manageUsersView) {
+public ManageUsersController(ManageUsersView manageUsersView, String loggedInUserEmail) {
     this.manageUsersView = manageUsersView;
-    
-    
-    System.out.println("🔹 ManageUsersController inicializado.");
-    
+    this.loggedInUserEmail = loggedInUserEmail;
     configureListeners();
-    
     // Cargar usuarios al abrir la vista
     loadUsersFromDataBase();
     updateUsersTable();
@@ -66,7 +63,8 @@ private void configureListeners() {
             String email = addUserView.getUserEmail();
             String phone = addUserView.getUserPhone();
             String password = addUserView.getUserPassword();
-            String role = addUserView.getUserRole();
+            String role = "administrador";
+
 
             // Validamos que los campos no estén vacíos
             if (name.isEmpty() || email.isEmpty() || phone.isEmpty() || password.isEmpty() || role.isEmpty()) {
@@ -88,6 +86,7 @@ private void configureListeners() {
         addUserView.getCancelButton().addActionListener(event -> addUserView.dispose());
     });
     
+    // --------------- Listener para eliminar usuarios --------------------------------------
     manageUsersView.getDeleteButton().addActionListener(e -> {
         int selectedRow = manageUsersView.getUsersTable().getSelectedRow();
     
@@ -108,7 +107,7 @@ private void configureListeners() {
         }
     });
 
-    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // --------------- Listener de edicion de usuarios --------------------------------------
    manageUsersView.getEditButton().addActionListener(e -> {
     int selectedRow = manageUsersView.getUsersTable().getSelectedRow();
     if (selectedRow == -1) {
@@ -129,23 +128,32 @@ private void configureListeners() {
         JOptionPane.showMessageDialog(manageUsersView, "Usuario no encontrado.", "Error", JOptionPane.ERROR_MESSAGE);
         return;
     }
+    
+    String selectedEmail = manageUsersView.getUsersTable().getValueAt(selectedRow, 2).toString();
+
+    if (!selectedEmail.equalsIgnoreCase(loggedInUserEmail)) {
+        JOptionPane.showMessageDialog(manageUsersView,
+            "No puedes editar otros usuarios. Solo puedes modificar tu propio perfil.",
+            "Acceso denegado", JOptionPane.WARNING_MESSAGE);
+        return;
+    }
 
     // Crear y mostrar la ventana de edición
     EditUserView editUserView = new EditUserView(manageUsersView);
     editUserView.setUserName(userToEdit.getName());
     editUserView.setUserEmail(userToEdit.getEmail());
     editUserView.setUserPhone(userToEdit.getPhone());
-    editUserView.setUserRole(userToEdit.getRole());
 
     editUserView.getSaveButton().addActionListener(event -> {
         String name = editUserView.getUserName();
         String email = editUserView.getUserEmail();
         String phone = editUserView.getUserPhone();
         String password = editUserView.getUserPassword();
-        String role = editUserView.getUserRole();
+        String role = "administrador";
+
 
         // Validar que los campos no estén vacíos
-        if (name.isEmpty() || email.isEmpty() || phone.isEmpty() || role.isEmpty()) {
+        if (name.isEmpty() || email.isEmpty() || phone.isEmpty()) {
             JOptionPane.showMessageDialog(manageUsersView, "Todos los campos excepto la contraseña son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
             return;
         }
@@ -237,44 +245,58 @@ private void loadUsersFromDataBase(){
     }
     
 public void addUserToDatabase(Users user) {
-    // Validación: No permitir valores vacíos
-    if (user.getName().isEmpty() || user.getEmail().isEmpty() || user.getPhone().isEmpty() ||
-        user.getPassword().isEmpty() || user.getRole().isEmpty()) {
+    if (user.getName().isEmpty() || user.getEmail().isEmpty() || user.getPhone().isEmpty() || user.getPassword().isEmpty()) {
         JOptionPane.showMessageDialog(null, "Todos los campos son obligatorios.", "Error", JOptionPane.ERROR_MESSAGE);
-        return; // Detener ejecución si hay un campo vacío
+        return;
     }
 
-    // Encriptar la contraseña antes de guardarla
-    String hashedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
-    
-    if (!user.getPassword().startsWith("$2a$")) { 
-    // Si la contraseña NO empieza con "$2a$", significa que no está encriptada
-    user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
-}
-
-    String query = "INSERT INTO usuarios (name, email, phone, password, role) VALUES (?, ?, ?, ?, ?)";
-    try (Connection connection = DatabaseConnection.getConnection();
-         PreparedStatement statement = connection.prepareStatement(query)) {
-        
-        statement.setString(1, user.getName());
-        statement.setString(2, user.getEmail());
-        statement.setString(3, user.getPhone());
-        statement.setString(4, hashedPassword); // Guardamos la contraseña encriptada
-        statement.setString(5, user.getRole());
-
-        int rowsInserted = statement.executeUpdate();
-        if (rowsInserted > 0) {
-            JOptionPane.showMessageDialog(null, "Usuario agregado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-            
-            // Recargar los datos en la tabla
-            loadUsersFromDataBase();
-            updateUsersTable();
+    try (Connection connection = DatabaseConnection.getConnection()) {
+        // Verificar duplicados de correo o teléfono
+        String checkQuery = "SELECT COUNT(*) FROM usuarios WHERE email = ? OR phone = ?";
+        try (PreparedStatement checkStmt = connection.prepareStatement(checkQuery)) {
+            checkStmt.setString(1, user.getEmail());
+            checkStmt.setString(2, user.getPhone());
+            ResultSet rs = checkStmt.executeQuery();
+            rs.next();
+            if (rs.getInt(1) > 0) {
+                JOptionPane.showMessageDialog(null, "Ya existe un usuario con ese correo o teléfono.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
         }
+
+        // Encriptar la contraseña antes de guardarla
+        String hashedPassword = BCrypt.hashpw(user.getPassword(), BCrypt.gensalt());
+
+        if (!user.getPassword().startsWith("$2a$")) {
+            user.setPassword(BCrypt.hashpw(user.getPassword(), BCrypt.gensalt()));
+        }
+
+        // Asignar rol fijo
+        user.setRole("administrador");
+
+        String query = "INSERT INTO usuarios (name, email, phone, password, role) VALUES (?, ?, ?, ?, ?)";
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, user.getName());
+            statement.setString(2, user.getEmail());
+            statement.setString(3, user.getPhone());
+            statement.setString(4, hashedPassword);
+            statement.setString(5, user.getRole());
+
+            int rowsInserted = statement.executeUpdate();
+            if (rowsInserted > 0) {
+                JOptionPane.showMessageDialog(null, "Usuario agregado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                loadUsersFromDataBase();
+                updateUsersTable();
+            }
+        }
+
     } catch (SQLException e) {
         e.printStackTrace();
         JOptionPane.showMessageDialog(null, "Error al agregar el usuario a la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
     }
 }
+
 
 private void deleteUserFromDatabase(String userId) {
     String query = "DELETE FROM usuarios WHERE id = ?";
@@ -301,31 +323,45 @@ private void deleteUserFromDatabase(String userId) {
 }
 
 private void updateUserInDatabase(Users user) {
-    String query = "UPDATE usuarios SET name = ?, email = ?, phone = ?, password = ?, role = ? WHERE id = ?";
-
-    try (Connection connection = DatabaseConnection.getConnection();
-         PreparedStatement statement = connection.prepareStatement(query)) {
-
-        statement.setString(1, user.getName());
-        statement.setString(2, user.getEmail());
-        statement.setString(3, user.getPhone());
-        statement.setString(4, user.getPassword());
-        statement.setString(5, user.getRole());
-        statement.setString(6, user.getId());
-
-        int rowsUpdated = statement.executeUpdate();
-        if (rowsUpdated > 0) {
-            JOptionPane.showMessageDialog(null, "Usuario actualizado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
-            
-            // Recargar los datos en la tabla
-            loadUsersFromDataBase();
-            updateUsersTable();
-        } else {
-            JOptionPane.showMessageDialog(null, "No se encontró el usuario para actualizar.", "Error", JOptionPane.ERROR_MESSAGE);
+    try (Connection connection = DatabaseConnection.getConnection()) {
+        // Validar duplicados excluyendo al propio usuario
+        String checkQuery = "SELECT COUNT(*) FROM usuarios WHERE (email = ? OR phone = ?) AND id != ?";
+        try (PreparedStatement checkStmt = connection.prepareStatement(checkQuery)) {
+            checkStmt.setString(1, user.getEmail());
+            checkStmt.setString(2, user.getPhone());
+            checkStmt.setString(3, user.getId());
+            ResultSet rs = checkStmt.executeQuery();
+            rs.next();
+            if (rs.getInt(1) > 0) {
+                JOptionPane.showMessageDialog(null, "Ya existe otro usuario con ese correo o teléfono.", "Error", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
         }
+
+        String query = "UPDATE usuarios SET name = ?, email = ?, phone = ?, password = ?, role = ? WHERE id = ?";
+
+        try (PreparedStatement statement = connection.prepareStatement(query)) {
+            statement.setString(1, user.getName());
+            statement.setString(2, user.getEmail());
+            statement.setString(3, user.getPhone());
+            statement.setString(4, user.getPassword());
+            statement.setString(5, user.getRole());
+            statement.setString(6, user.getId());
+
+            int rowsUpdated = statement.executeUpdate();
+            if (rowsUpdated > 0) {
+                JOptionPane.showMessageDialog(null, "Usuario actualizado exitosamente.", "Éxito", JOptionPane.INFORMATION_MESSAGE);
+                loadUsersFromDataBase();
+                updateUsersTable();
+            } else {
+                JOptionPane.showMessageDialog(null, "No se encontró el usuario para actualizar.", "Error", JOptionPane.ERROR_MESSAGE);
+            }
+        }
+
     } catch (SQLException e) {
         e.printStackTrace();
         JOptionPane.showMessageDialog(null, "Error al actualizar el usuario en la base de datos.", "Error", JOptionPane.ERROR_MESSAGE);
     }
 }
+
 }

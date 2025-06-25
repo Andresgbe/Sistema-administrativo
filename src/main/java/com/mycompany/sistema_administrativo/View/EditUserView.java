@@ -39,10 +39,6 @@ public class EditUserView extends JDialog{
         passwordField = new JPasswordField();
         add(passwordField);
 
-        add(new JLabel("Rol:"));
-        roleField = new JTextField();
-        add(roleField);
-
         // Botones para guardar y cancelar
         saveButton = new JButton("Guardar");
         cancelButton = new JButton("Cancelar");
@@ -65,9 +61,6 @@ public class EditUserView extends JDialog{
         phoneField.setText(phone);
     }
 
-    public void setUserRole(String role) {
-        roleField.setText(role);
-    }
 
     // Métodos para obtener los valores ingresados por el usuario
     public String getUserName() {
@@ -86,9 +79,7 @@ public class EditUserView extends JDialog{
         return new String(passwordField.getPassword());
     }
 
-    public String getUserRole() {
-        return roleField.getText();
-    }
+
 
     public JButton getSaveButton() {
         return saveButton;
