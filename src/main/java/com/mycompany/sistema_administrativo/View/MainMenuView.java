@@ -9,8 +9,8 @@ import com.mycompany.sistema_administrativo.Controller.ManageProductsController;
 import com.mycompany.sistema_administrativo.Controller.ManageSuppliersController;
 import com.mycompany.sistema_administrativo.Controller.ManageClientsController;
 import com.mycompany.sistema_administrativo.Controller.ManageTransactionsController;
-
 import com.mycompany.sistema_administrativo.Controller.*;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;

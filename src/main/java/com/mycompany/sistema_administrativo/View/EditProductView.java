@@ -8,55 +8,163 @@ import com.mycompany.sistema_administrativo.Model.Suppliers;
 import javax.swing.*;
 import java.awt.*;
 import java.util.List;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 
 public class EditProductView extends JDialog {
 
     private JTextField codeField, nameField, descriptionField, priceField, stockField;
+    private JComboBox<String> tipoProductoComboBox;
     private JComboBox<Suppliers> supplierComboBox;
     private JButton saveButton, cancelButton;
 
-    public EditProductView(JFrame parent){
+    public EditProductView(JFrame parent) {
         super(parent, "Editar Producto", true);
-        setSize(350, 300);
-        setLayout(new GridLayout(7, 2, 10, 10));
+        setSize(400, 450);
+        setLocationRelativeTo(parent);
+        setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 10, 5, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
 
-        add(new JLabel("Código:"));
+        int row = 0;
+
+        // Código
+        gbc.gridx = 0; gbc.gridy = row;
+        add(new JLabel("Código:"), gbc);
+        gbc.gridx = 1;
         codeField = new JTextField();
-        add(codeField);
+        add(codeField, gbc);
+        row++;
 
-        add(new JLabel("Nombre:"));
+        // Nombre
+        gbc.gridx = 0; gbc.gridy = row;
+        add(new JLabel("Nombre:"), gbc);
+        gbc.gridx = 1;
         nameField = new JTextField();
-        add(nameField);
+        add(nameField, gbc);
+        row++;
 
-        add(new JLabel("Descripción:"));
+        // Descripción
+        gbc.gridx = 0; gbc.gridy = row;
+        add(new JLabel("Descripción:"), gbc);
+        gbc.gridx = 1;
         descriptionField = new JTextField();
-        add(descriptionField);
+        add(descriptionField, gbc);
+        row++;
 
-        add(new JLabel("Precio:"));
+        // Precio
+        gbc.gridx = 0; gbc.gridy = row;
+        add(new JLabel("Precio:"), gbc);
+        gbc.gridx = 1;
         priceField = new JTextField();
-        add(priceField);
+        add(priceField, gbc);
+        row++;
 
-        add(new JLabel("Stock:"));
+        // Stock
+        gbc.gridx = 0; gbc.gridy = row;
+        add(new JLabel("Stock:"), gbc);
+        gbc.gridx = 1;
         stockField = new JTextField();
-        add(stockField);
+        add(stockField, gbc);
+        row++;
 
-        add(new JLabel("Proveedor:"));
+        // Tipo de producto
+        gbc.gridx = 0; gbc.gridy = row;
+        add(new JLabel("Tipo de producto:"), gbc);
+        gbc.gridx = 1;
+        tipoProductoComboBox = new JComboBox<>(new String[]{
+                "Insumo Médico", "Medicamento"
+        });
+        add(tipoProductoComboBox, gbc);
+        row++;
+
+        // Proveedor
+        gbc.gridx = 0; gbc.gridy = row;
+        add(new JLabel("Proveedor:"), gbc);
+        gbc.gridx = 1;
         supplierComboBox = new JComboBox<>();
-        add(supplierComboBox);
+        add(supplierComboBox, gbc);
+        row++;
 
+        // Botones
+        JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         saveButton = new JButton("Guardar");
         cancelButton = new JButton("Cancelar");
-        add(saveButton);
-        add(cancelButton);
+        buttonsPanel.add(saveButton);
+        buttonsPanel.add(cancelButton);
 
-        setLocationRelativeTo(parent);
+        gbc.gridx = 0; gbc.gridy = row; gbc.gridwidth = 2;
+        add(buttonsPanel, gbc);
+
+        addValidators();
     }
 
+    private void addValidators() {
+        // Nombre: solo letras y espacios
+        nameField.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!Character.isLetter(c) && c != ' ' && c != '\b') {
+                    e.consume();
+                }
+            }
+        });
+
+        // Código: solo alfanumérico
+        codeField.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!Character.isLetterOrDigit(c) && c != '\b') {
+                    e.consume();
+                }
+            }
+        });
+
+        // Precio: float
+        priceField.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                String text = priceField.getText();
+                if ((!Character.isDigit(c) && c != '.') || (c == '.' && text.contains("."))) {
+                    e.consume();
+                }
+            }
+        });
+
+        // Stock: solo números enteros
+        stockField.addKeyListener(new KeyAdapter() {
+            public void keyTyped(KeyEvent e) {
+                char c = e.getKeyChar();
+                if (!Character.isDigit(c)) {
+                    e.consume();
+                }
+            }
+        });
+    }
+
+    public String getProductCode() { return codeField.getText(); }
     public void setProductCode(String code) { codeField.setText(code); }
+
+    public String getProductName() { return nameField.getText(); }
     public void setProductName(String name) { nameField.setText(name); }
-    public void setProductDescription(String description) { descriptionField.setText(description); }
+
+    public String getProductDescription() { return descriptionField.getText(); }
+    public void setProductDescription(String desc) { descriptionField.setText(desc); }
+
+    public float getProductPrice() { return Float.parseFloat(priceField.getText()); }
     public void setProductPrice(float price) { priceField.setText(String.valueOf(price)); }
+
+    public int getProductStock() { return Integer.parseInt(stockField.getText()); }
     public void setProductStock(int stock) { stockField.setText(String.valueOf(stock)); }
+
+    public String getProductType() {
+        return (String) tipoProductoComboBox.getSelectedItem();
+    }
+    public void setProductType(String tipo) {
+        tipoProductoComboBox.setSelectedItem(tipo);
+    }
 
     public void setSupplierOptions(List<Suppliers> suppliers) {
         supplierComboBox.removeAllItems();
@@ -65,25 +173,19 @@ public class EditProductView extends JDialog {
         }
     }
 
+    public String getSelectedSupplierId() {
+        Suppliers selected = (Suppliers) supplierComboBox.getSelectedItem();
+        return selected != null ? selected.getId() : null;
+    }
+
     public void setSelectedSupplier(String supplierId) {
         for (int i = 0; i < supplierComboBox.getItemCount(); i++) {
-            Suppliers s = supplierComboBox.getItemAt(i);
-            if (s.getId().equals(supplierId)) {
+            Suppliers supplier = supplierComboBox.getItemAt(i);
+            if (supplier.getId().equals(supplierId)) {
                 supplierComboBox.setSelectedIndex(i);
                 break;
             }
         }
-    }
-
-    public String getProductCode() { return codeField.getText(); }
-    public String getProductName() { return nameField.getText(); }
-    public String getProductDescription() { return descriptionField.getText(); }
-    public float getProductPrice() { return Float.parseFloat(priceField.getText()); }
-    public int getProductStock() { return Integer.parseInt(stockField.getText()); }
-
-    public String getSelectedSupplierId() {
-        Suppliers selected = (Suppliers) supplierComboBox.getSelectedItem();
-        return selected != null ? selected.getId() : null;
     }
 
     public JButton getSaveButton() { return saveButton; }

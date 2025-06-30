@@ -17,10 +17,11 @@ public class Products {
     private float price;
     private int stock;  
     private String supplierId;
+    private String tipoProducto;
 
     
     // Constructor que se usa cuando se recupera productos en la base de datos
-    public Products(String id, String code, String name, String description, float price, int stock, String supplierId){
+    public Products(String id, String code, String name, String description, float price, int stock, String supplierId, String tipoProducto){
         this.id = id;
         this.code = code;
         this.name = name;
@@ -28,20 +29,26 @@ public class Products {
         this.price = price;
         this.stock = stock;
         this.supplierId = supplierId;
+        this.tipoProducto = tipoProducto;
     }
     
     //Constructor para agregar un nuevo producto
-    public Products(String code, String name, String description, float price, int stock, String supplierId){
+    public Products(String code, String name, String description, float price, int stock, String supplierId, String tipoProducto){
         this.code = code;
         this.name = name;
         this.description = description;
         this.price = price;
         this.stock = stock; 
         this.supplierId = supplierId;
+        this.tipoProducto = tipoProducto;
     }
 
     public String getId() {
         return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getCode() {
@@ -103,6 +110,14 @@ public class Products {
                 ", price=" + price +
                 ", stock=" + stock +
                 '}';
+    }
+
+    public String getTipoProducto() {
+        return tipoProducto;
+    }
+
+    public void setTipoProducto(String tipoProducto) {
+        this.tipoProducto = tipoProducto;
     }
 
 }
