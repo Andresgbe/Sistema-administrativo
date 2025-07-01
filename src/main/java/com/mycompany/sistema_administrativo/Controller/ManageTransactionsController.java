@@ -3,7 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.mycompany.sistema_administrativo.Controller;
-import Utils.InvoiceGenerator;
+import com.mycompany.sistema_administrativo.Utils.InvoiceGenerator;
 import com.mycompany.sistema_administrativo.Model.Transactions;
 import com.mycompany.sistema_administrativo.Database.DatabaseConnection;
 import com.mycompany.sistema_administrativo.View.ManageTransactionsView;

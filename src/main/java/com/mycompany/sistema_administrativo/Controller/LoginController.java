@@ -47,7 +47,7 @@ public class LoginController {
         System.out.println("🔹 Conexión con la base de datos establecida.");
 
         // Consulta SQL para obtener la contraseña hasheada y el rol del usuario
-        String query = "SELECT password, role FROM usuarios WHERE email = ?";
+        String query = "SELECT name, password, role FROM usuarios WHERE email = ?";
         PreparedStatement statement = connection.prepareStatement(query);
         statement.setString(1, email);
 
@@ -57,6 +57,7 @@ public class LoginController {
             // Obtener la contraseña hasheada de la base de datos
             String storedHashedPassword = resultSet.getString("password");
             String role = resultSet.getString("role");
+            String name = resultSet.getString("name");
 
             // Verificar la contraseña ingresada con la almacenada usando BCrypt
             boolean passwordMatches = BCrypt.checkpw(password, storedHashedPassword);
@@ -64,7 +65,7 @@ public class LoginController {
             if (passwordMatches) {
                 JOptionPane.showMessageDialog(loginView, "Inicio de sesión exitoso.\nBienvenido: " + email);
 
-                MainMenuView mainMenu = new MainMenuView(email, role);
+                MainMenuView mainMenu = new MainMenuView(email, name, role);
                 mainMenu.setVisible(true);
 
                 loginView.dispose();
